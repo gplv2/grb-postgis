@@ -153,7 +153,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # DISTRIB_RELEASE=16.04
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer
+        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2
         apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
     fi
 
@@ -179,6 +179,11 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "(re)Start postgres db ..."
     # service postgresql restart # Gives no output, so take old school one
     /etc/init.d/postgresql restart
+
+    
+    echo "Installing POSTGIS extentions..."
+    su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DB}
+    su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DATA_DB}
 
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
