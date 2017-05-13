@@ -152,12 +152,6 @@ So we are good here.  In case something got tainted, you would see what is going
 
 Watch the magic.  The provisioner script installation is set in bash debug mode, so you get wonderful stream of feedback.  Use terraform without options to get a short help.
 
-## Terraform - remote state
-
-   in .terraform/terraform.tfstate , check version number, use project name
-
-   terraform remote config -backend=s3 -backend-config="bucket=tf-bucket" -backend-config="key=madalana-156008/terraform.tfstate" -backend-config="region=eu-central-1" 
-
 ----
 
 # Optional install gcloud cli tool
@@ -166,14 +160,7 @@ Watch the magic.  The provisioner script installation is set in bash debug mode,
 
     glenn@slicky:~/repos/terraform$ gcloud compute instances list
     NAME       ZONE            MACHINE_TYPE               PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
-    tf-core-0  europe-west1-d  custom (1 vCPU, 4.50 GiB)               10.132.0.3   130.211.83.199  RUNNING
-    tf-db-0    europe-west1-d  custom (1 vCPU, 2.00 GiB)               10.132.0.5   104.155.58.142  RUNNING
-    tf-www-0   europe-west1-d  n1-standard-1                           10.132.0.2   104.155.65.159  RUNNING
-    tf-www-1   europe-west1-d  n1-standard-1                           10.132.0.4   104.155.79.229  RUNNING
-
-# Enable remote state
-   terraform remote config -backend=s3 -backend-config="bucket=tf-bucket" -backend-config="key=madalana-156008/terraform.tfstate" -backend-config="region=eu-central-1"
-----
+    tf-db-0    europe-west1-d  custom (1 vCPU, 2.00 GiB)               10.132.0.5   204.255.58.142  RUNNING
 
 # Sandbox Uses
 
