@@ -26,7 +26,7 @@ resource "google_compute_instance" "db" {
   count = 1
 
   name = "tf-db-${count.index}"
-  machine_type = "n1-highmem-4"
+  machine_type = "n1-highmem-2"
   zone = "${var.region_zone}"
  
   scheduling {
@@ -78,8 +78,8 @@ resource "google_compute_instance" "db" {
 
 # installs the config
   provisioner "file" {
-    source = "scripts/ssh_config"
-    destination = "/root/.ssh/config"
+    source = "scripts/shmsetup.sh"
+    destination = "/usr/local/bin/shmsetup.sh"
     connection {
       type = "ssh"
       user = "root"
@@ -154,20 +154,6 @@ resource "google_compute_instance" "db" {
     ]
   }
 
-# sftp keys 
-# Copy all accepted public keys over
-  provisioner "file" {
-    source = "sftpkeys/"
-    destination = "/tmp/skeys/"
-    connection {
-      type = "ssh"
-      user = "root"
-      private_key = "${file("${var.private_key_path}")}"
-      agent = false
-    }
-  }
-
-# Copy config artifacts over to use later
   provisioner "remote-exec" {
     connection {
       type = "ssh"

@@ -160,6 +160,9 @@ fi
 
 # DB server
 if [ "${RES_ARRAY[1]}" = "db" ]; then
+    echo "Setting up shared mem"
+    /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
+
     echo "Installing postgres DB server ..."
     # DISTRIB_RELEASE=16.04
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
@@ -191,7 +194,6 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # service postgresql restart # Gives no output, so take old school one
     /etc/init.d/postgresql restart
 
-    
     echo "Installing POSTGIS extentions..."
     su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DB}
     su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DATA_DB}
