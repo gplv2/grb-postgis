@@ -25,7 +25,7 @@ resource "google_compute_instance_group" "db" {
 resource "google_compute_instance" "db" {
   count = 1
 
-  name = "tf-db-${count.index}"
+  name = "grb-db-${count.index}"
   machine_type = "n1-highmem-2"
   zone = "${var.region_zone}"
  
@@ -232,7 +232,7 @@ resource "google_compute_instance" "db" {
 }
 
 resource "google_compute_firewall" "default" {
-  name = "tf-www-firewall"
+  name = "grb-www-firewall"
   network = "default"
 
   allow {
@@ -255,17 +255,3 @@ terraform {
     region     = "eu-central-1"
   }
 }
-
-# Setup storage of terraform statefile in s3.
-# You should change stuff here if you are working on a different environment,
-# especially if you are working with two separate environments in one region.
-#data "terraform_remote_state" "ops" {
-#  backend = "s3"
-#  config {
-#    bucket     = "my-tf-states"
-#    key        = "${var.project_name}/terraform.tfstate"
-#    region     = "${var.aws_region}"
-#    access_key = "${var.aws_access_key}"
-#    secret_key = "${var.aws_secret_key}"
-#  }
-#}
