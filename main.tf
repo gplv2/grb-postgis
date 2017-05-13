@@ -222,6 +222,7 @@ resource "google_compute_instance" "db" {
     }
     inline = [
       "chmod +x ${var.install_script_dest_path}",
+      "chmod +x /usr/local/bin/shmsetup.sh",
       "sudo ${var.install_script_dest_path} ${count.index}"
     ]
   }
