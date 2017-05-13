@@ -42,17 +42,17 @@ resource "google_compute_instance" "db" {
   }
 
   disk {
-    type        = "pd-standard"
+    type        = "pd-ssd"
     auto_delete = true
     scratch     = true
-    size        = 60
+    size        = 100
   }
 
   disk {
-    type        = "local-ssd"
+    type        = "pd-ssd"
     auto_delete = true
     scratch     = true
-    size        = 50
+    size        = 100
   }
 
   network_interface {
@@ -236,7 +236,7 @@ resource "google_compute_instance" "db" {
     }
     inline = [
       "chmod +x /tmp/mountformat.sh",
-      "sudo /tmp/mountformat.sh"
+      "sudo /tmp/mountformat.sh",
       "chmod +x /usr/local/bin/shmsetup.sh",
       "chmod +x ${var.install_script_dest_path}",
       "chmod +x /usr/local/bin/shmsetup.sh",
