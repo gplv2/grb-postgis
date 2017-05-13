@@ -162,6 +162,7 @@ fi
 # DB server
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "Setting up shared mem"
+    chmod +x /usr/local/bin/shmsetup.sh
     /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
 
     echo "Installing postgres DB server ..."
