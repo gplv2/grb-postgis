@@ -1,0 +1,1 @@
+*/61 * * * * GCE_INI_PATH=/usr/local/etc/gce.ini /usr/local/bin/gce.py --list | aeson-pretty > /etc/projectdata.json 2>/dev/null
