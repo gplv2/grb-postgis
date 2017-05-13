@@ -38,7 +38,23 @@ resource "google_compute_instance" "db" {
   tags = ["db-node"]
   disk {
     image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
-    size = 200
+    size = 100
+  }
+
+  disk {
+    type        = "pd-standard"
+    auto_delete = true
+    boot        = false
+    scratch     = true
+    size        = 60
+  }
+
+  disk {
+    type        = "local-ssd"
+    auto_delete = true
+    boot        = false
+    scratch     = true
+    size        = 50
   }
 
   network_interface {
