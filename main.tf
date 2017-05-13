@@ -262,16 +262,24 @@ resource "google_compute_firewall" "default" {
   target_tags = ["www-node"]
 }
 
+terraform {
+  backend "s3" {
+    bucket     = "my-tf-states"
+    key        = "api-project-37604919139/terraform.state"
+    region     = "eu-central-1"
+  }
+}
+
 # Setup storage of terraform statefile in s3.
 # You should change stuff here if you are working on a different environment,
 # especially if you are working with two separate environments in one region.
-data "terraform_remote_state" "ops" {
-  backend = "s3"
-  config {
-    bucket     = "my-tf-states"
-    key        = "${var.project_name}/terraform.tfstate"
-    region     = "${var.aws_region}"
-    access_key = "${var.aws_access_key}"
-    secret_key = "${var.aws_secret_key}"
-  }
-}
+#data "terraform_remote_state" "ops" {
+#  backend = "s3"
+#  config {
+#    bucket     = "my-tf-states"
+#    key        = "${var.project_name}/terraform.tfstate"
+#    region     = "${var.aws_region}"
+#    access_key = "${var.aws_access_key}"
+#    secret_key = "${var.aws_secret_key}"
+#  }
+#}

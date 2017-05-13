@@ -80,6 +80,17 @@ function create_bash_alias {
     sudo su - $DEPLOY_USER -c "echo ${GO_HOME} >> ~/.bash_aliases"
 }
 
+function install_grb_sources {
+    echo "Install GRB source code ..."
+    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
+    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
+    su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
+
+    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2pgsql.git grb2pgsql"
+    su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule init"
+    su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
+}
+
 # Generating locales...
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
 
@@ -333,6 +344,12 @@ fi
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "Restart sshd  ..."
     /etc/init.d/ssh restart
+fi
+
+# install GRB stuff
+if [ "${RES_ARRAY[1]}" = "db" ]; then
+   install_grb_sources
+   create_bash_alias
 fi
 
 echo "Provisioning done"
