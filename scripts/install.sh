@@ -197,8 +197,13 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     /etc/init.d/postgresql restart
 
     echo "Installing POSTGIS extentions..."
-    su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DB}
-    su - postgres psql -c "CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;" ${DATA_DB}
+
+cat > /tmp/install.postgis.sql << EOF
+CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+EOF
+
+    su - postgres -c "cat /tmp/install.postgis | psql -d $DB"
+    su - postgres -c "cat /tmp/install.postgis | psql -d $DATA_DB"
 
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
