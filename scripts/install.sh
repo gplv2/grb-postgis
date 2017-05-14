@@ -196,15 +196,6 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # service postgresql restart # Gives no output, so take old school one
     /etc/init.d/postgresql restart
 
-    echo "Installing POSTGIS extentions..."
-
-cat > /tmp/install.postgis.sql << EOF
-CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
-EOF
-
-    su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
-    su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
-
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
 
@@ -228,8 +219,22 @@ EOF
 
     su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
 
-# deliver the database (no tables)
-   #su - postgres -c "cat /tmp/database.sql | psql"
+    echo "Installing POSTGIS extentions..."
+
+cat > /tmp/install.postgis.sql << EOF
+CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+EOF
+
+    if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
+       su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
+    fi
+
+    if su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
+       su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
+    fi
+
+    # deliver the database (no tables)
+    #su - postgres -c "cat /tmp/database.sql | psql"
 fi
 
 # Update noninteractive
