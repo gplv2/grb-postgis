@@ -222,7 +222,8 @@ EOF
     echo "Installing POSTGIS extentions..."
 
 cat > /tmp/install.postgis.sql << EOF
-CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
+CREATE EXTENSION postgis; 
+CREATE EXTENSION postgis_topology;
 EOF
 
     if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
@@ -279,22 +280,27 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     ## concat the deployment pub keys into authorize
     if [ -d "/root/.ssh" ]; then
 	# for root
-        cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /root/.ssh/authorized_keys
-        chmod 644 /root/.ssh/authorized_keys
+        [ -r /tmp/configs/authorized.default ] && cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /root/.ssh/authorized_keys
+        [ -r /root/.ssh/authorized_keys ] && chmod 644 /root/.ssh/authorized_keys
+
 	# for user
         # deploy keys
-        cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
-        # individual user keys (start with user_* )
-        cat /tmp/configs/authorized.default /root/.ssh/user_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
-        chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/authorized_keys
-        chmod 644 /home/${DEPLOY_USER}/.ssh/authorized_keys
+        if [ -r "/tmp/configs/authorized.default" ]; then
+            cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
+            # individual user keys (start with user_* )
+            cat /tmp/configs/authorized.default /root/.ssh/user_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
+            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/authorized_keys
+            chmod 644 /home/${DEPLOY_USER}/.ssh/authorized_keys
+        fi
     fi
 
     ## Copy all deployment keys priv/public to the deploy user ssh dir 
     if [ -d "/root/.ssh" ]; then
-    	cp /root/.ssh/config /home/${DEPLOY_USER}/.ssh/
-        cp /root/.ssh/deployment_* /home/${DEPLOY_USER}/.ssh/
-        chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/deployment_*
+        if [ -r "/root/.ssh/config" ]; then
+    	    cp /root/.ssh/config /home/${DEPLOY_USER}/.ssh/
+            cp /root/.ssh/deployment_* /home/${DEPLOY_USER}/.ssh/
+            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/deployment_*
+        fi
     fi
     ## This user will be able to use rsync etc to connect internally.
     # Add bitbuckets/github keys to deploy user too
