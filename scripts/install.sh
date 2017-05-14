@@ -66,6 +66,15 @@ function create_db_ini_file {
    echo "password = ${PASSWORD}" >> $DB_CREDENTIALS
 }
 
+download_grb_data {
+    # downloading GRB data from CDN
+    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip
+    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip
+    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip
+    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip
+    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip
+}
+
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "Setting up bash aliases : psqlc home"
@@ -377,6 +386,7 @@ fi
 if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_grb_sources
    create_bash_alias
+   download_grb_data
 fi
 
 echo "Provisioning done"
