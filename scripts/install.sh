@@ -82,13 +82,21 @@ function create_bash_alias {
 
 function install_grb_sources {
     echo "Install GRB source code ..."
-    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
-    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
+    # https://github.com/gplv2/grb2pgsql.git
+    # https://github.com/gplv2/grb2osm.git
+    # https://github.com/gplv2/grbtool.git
+
+    #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
+    #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
+
+    su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
+    su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grb2osm.git grb2osm"
     su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
 
-    su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2pgsql.git grb2pgsql"
-    su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule init"
-    su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
+    # with submodules
+    su - ${DEPLOY_USER} -c "git clone --recursive https://github.com/gplv2/grb2pgsql.git grb2pgsql"
+    #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule init"
+    #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
 }
 
 # Generating locales...
