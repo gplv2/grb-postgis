@@ -202,8 +202,8 @@ cat > /tmp/install.postgis.sql << EOF
 CREATE EXTENSION postgis; CREATE EXTENSION postgis_topology;"
 EOF
 
-    su - postgres -c "cat /tmp/install.postgis | psql -d $DB"
-    su - postgres -c "cat /tmp/install.postgis | psql -d $DATA_DB"
+    su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
+    su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
 
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
@@ -215,7 +215,7 @@ EOF
     
     # create additional DB for raw data storage for preprocessing service (only on db node, not onboarding)
     if [ "${RES_ARRAY[1]}" = "db" ]; then
-        echo "Creating worker db "
+        echo "Creating 2nd GIS db "
        if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
           su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
        fi
@@ -226,12 +226,11 @@ cat > /tmp/install.postcreate.sql << EOF
 ALTER USER "$USER" WITH PASSWORD '${PASSWORD}';
 EOF
 
-su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
+    su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
 
 # deliver the database (no tables)
    #su - postgres -c "cat /tmp/database.sql | psql"
 fi
-
 
 # Update noninteractive
 DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -o Dpkg::Use-Pty=0
