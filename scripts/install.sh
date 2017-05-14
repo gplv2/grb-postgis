@@ -257,8 +257,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         chmod 0700 /root/.ssh
     fi
 
-    #chmod 600 /root/.ssh/deployment_key.rsa
-    #chmod 644 /root/.ssh/deployment_key.rsa.pub
+    chmod 600 /root/.ssh/deployment_*rsa
+    chmod 644 /root/.ssh/deployment_*pub
 
     #chmod 644 /root/.ssh/config
 
@@ -349,7 +349,7 @@ cat << EOF >> /home/${DEPLOY_USER}/.ssh/config
 Host $host
   HostName $host
   PreferredAuthentications publickey
-  IdentityFile ~/.ssh/deployment_key.rsa
+  IdentityFile ~/.ssh/deployment_grb_rsa
   StrictHostKeyChecking=no
 EOF
    done
