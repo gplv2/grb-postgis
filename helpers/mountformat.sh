@@ -24,6 +24,6 @@ UUID=`sudo blkid -s UUID -o value /dev/sdc`
 
 sh -c "echo \"UUID=${UUID}   /datadisk2   ext4   defaults,discard,nobarrier,nofail   0 2\" >> /etc/fstab"
 
-echo "mounting with UUID
+echo "mounting with UUID"
 mount /datadisk1
 mount /datadisk2
