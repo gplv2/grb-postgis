@@ -215,18 +215,6 @@ resource "google_compute_instance" "db" {
     }
   }
 
-  # all the shell files in /tmp
-  provisioner "file" {
-    source = "helpers/"
-    destination = "/tmp/"
-    connection {
-      type = "ssh"
-      user = "root"
-      private_key = "${file("${var.private_key_path}")}"
-      agent = false
-    }
-  }
-
   provisioner "remote-exec" {
     connection {
       type = "ssh"
@@ -237,7 +225,6 @@ resource "google_compute_instance" "db" {
     inline = [
       "chmod +x /tmp/mountformat.sh",
       "sudo /tmp/mountformat.sh",
-      "chmod +x /usr/local/bin/shmsetup.sh",
       "chmod +x ${var.install_script_dest_path}",
       "chmod +x /usr/local/bin/shmsetup.sh",
       "sudo ${var.install_script_dest_path} ${count.index}"

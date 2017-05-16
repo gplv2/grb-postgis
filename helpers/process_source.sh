@@ -1,0 +1,174 @@
+#!/bin/bash
+
+# This script has been converted from the beta development site
+
+
+echo "Reset counter $file"
+
+# We need to keep track of the ogr2osm id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
+#echo "15715818" > ogr2osm.id
+
+
+# If you are low on diskspace, you can use fuse to mount the zips as device in user space
+# fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
+# fusermount -u GRBgis_40000
+
+#fuse-zip -o ro files/GRBgis_10000.zip GRBgis_10000
+#fuse-zip -o ro files/GRBgis_20001.zip GRBgis_20001
+#fuse-zip -o ro files/GRBgis_30000.zip GRBgis_30000
+#fuse-zip -o ro files/GRBgis_40000.zip GRBgis_40000
+#fuse-zip -o ro files/GRBgis_70000.zip GRBgis_70000
+#fuse-zip -o ro files/GRBgis_04000.zip GRBgis_04000
+
+#for file in GRBgis_*/Shapefile/Gba*.shp
+for file in GRBgis_40000/Shapefile/Gbg*.shp GRBgis_04000/Shapefile/Gbg*.shp GRBgis_70000/Shapefile/Gbg*.shp GRBgis_40000/Shapefile/Gba*.shp GRBgis_04000/Shapefile/Gba*.shp GRBgis_70000/Shapefile/Gba*.shp
+#for file in GRBgis_40000/Shapefile/Knw*.shp GRBgis_04000/Shapefile/Knw*.shp GRBgis_70000/Shapefile/Knw*.shp GRBgis_40000/Shapefile/Gba*.shp GRBgis_04000/Shapefile/Gba*.shp GRBgis_70000/Shapefile/Gba*.shp
+#for file in GRBgis_*/Shapefile/Knw*.shp
+
+do
+ echo "Processing $file"
+ dirname=$(dirname "$file")
+ filename=$(basename "$file")
+ extension="${filename##*.}"
+ filename="${filename%.*}"
+ entity=${filename:0:3} # Gba/Gbg
+
+ echo $dirname
+ echo "Cleanup parsed"
+ echo "=============="
+ rm -Rf "${filename}_parsed"
+ echo "OGR FILE INFO"
+ echo "============="
+ /usr/local/bin/ogrinfo -al -so ${dirname}/${filename}.shp
+ echo ""
+
+ echo "OGR2OGR"
+ echo "======="
+ echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
+ /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
+
+ echo "\n"
+ echo "OGR2OSM"
+ echo "======="
+ rm -f "${filename}.osm"
+ echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
+ /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
+ echo ""
+
+# using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
+
+# GBG
+ if [ $entity == 'Gbg' ] 
+    then
+    echo "running gbg sed\n"
+    # mapping the entities to the OSM equivalent
+ 	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/shed/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gbg"/g' -i "${filename}.osm"
+    # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
+ 	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+ fi
+
+# KNW
+ if [ $entity == 'Knw' ] 
+    then
+    echo "running gbg sed\n"
+    # mapping the entities to the OSM equivalent
+ 	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/shed/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Knw"/g' -i "${filename}.osm"
+    # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
+ 	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+ fi
+
+# GBA
+ if [ $entity == 'Gba' ] 
+    then
+    echo "running gba sed\n"
+    # mapping the entities to the OSM equivalent
+ 	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gba"/g' -i "${filename}.osm"
+    # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
+ 	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+ fi
+
+# addressing is done directly in the database now, it used to be done in the file but the tool has been updated since this
+# echo "GRB2OSM"
+# echo "======="
+# # addressing vectors
+# startname=${filename:0:3}
+# restname=${filename:3}
+# echo /usr/local/bin/grb2osm/grb2osm.php -f "${dirname}/Tbl${startname}Adr${restname}.dbf" -i "${filename}.osm" -o "${filename}_addressed.osm"
+# /usr/local/bin/grb2osm/grb2osm.php -f "${dirname}/Tbl${startname}Adr${restname}.dbf" -i "${filename}.osm" -o "${filename}_addressed.osm"
+#exit;
+# echo -n $file
+done
+
+exit
+
+echo "OSMOSIS MERGE"
+echo "============="
+##TEMPrm -f merged.osm
+#osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gbg30000.osm --rx Gba10000.osm --rx Gba20001.osm --rx Gba30000.osm --merge --merge --merge --merge --merge --wx merged.osm
+#osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gba10000.osm --rx Gba20001.osm --merge --merge --merge --wx merged.osm
+
+#osmosis --rx Gbg04000.osm --rx Gbg10000.osm --rx Gbg20001.osm --rx Gbg30000.osm --rx Gbg40000.osm --rx Gbg70000.osm --rx Gba04000.osm --rx Gba10000.osm --rx Gba20001.osm --rx Gba30000.osm --rx Gba40000.osm --rx Gba70000.osm --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --wx merged.osm
+
+#  postgresql work
+
+ echo ""
+ echo "IMPORT"
+ echo "======"
+#/usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data merged.osm
+
+# echo /usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data "${filename}_addressed.osm"
+# /usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data "${filename}_addressed.osm"
+
+echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default");' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+
+# setup source tag for all objects
+echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb
+
+echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default");' | psql -U grb-data grb
+
+# use a query to update 'trap' as this word is a bit too short to do with sed
+echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb
+
+exit;
+
+# more to change using queries :
+
+#    <tag k="building" v="cabine"/>
+#    <tag k="building" v="chemische installatie"/>
+#    <tag k="building" v="cultuur-historisch monument"/>
+#    <tag k="building" v="golfbreker, strandhoofd en lage havendam"/>
+#    <tag k="building" v="havendam"/>
+#    <tag k="building" v="hoogspanningsmast / openbare TV mast"/>
+#    <tag k="building" v="koeltoren"/>
+#    <tag k="building" v="overbrugging"/>
+#    <tag k="building" v="pijler"/>
+#    <tag k="building" v="rooster"/>
+#    <tag k="building" v="schoorsteen"/>
+#    <tag k="building" v="silo, opslagtank"/>
+#    <tag k="building" v="staketsel"/>
+#    <tag k="building" v="tunnelmond"/>
+#    <tag k="building" v="waterbouwkundig constructie"/>
+#    <tag k="building" v="watertoren"/>
+
+
+#/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf,GRBgis_10000/Shapefile/TblGbgAdr10000.dbf,GRBgis_30000/Shapefile/TblGbgAdr30000.dbf
+
+# address directly in the database using DBF database file, the tool will take care of all anomalities encountered
+/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf
+/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_10000/Shapefile/TblGbgAdr10000.dbf
+/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_30000/Shapefile/TblGbgAdr30000.dbf
+
+echo ""
+echo "Flush cache"
+echo "==========="
+ # flush redis cache
+echo "flushall" | redis-cli 
+
+exit;
+

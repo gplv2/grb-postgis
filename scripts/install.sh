@@ -67,6 +67,11 @@ function install_tools {
     # need to add this directory to PATH
 }
 
+function process_source_data {
+    # call external script
+    /tmp/process_source.sh
+}
+
 function create_db_ini_file {
    echo "user     = ${USER}" > $DB_CREDENTIALS
    echo "database = ${DATA_DB}" >> $DB_CREDENTIALS
@@ -74,10 +79,11 @@ function create_db_ini_file {
    echo "password = ${PASSWORD}" >> $DB_CREDENTIALS
 }
 
-download_grb_data {
+function prepare_source_data {
     # downloading GRB data from CDN
     echo "downloading data"
     mkdir /usr/local/src/grb
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
     cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip
     cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip
     cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip
@@ -405,7 +411,7 @@ fi
 if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_grb_sources
    create_bash_alias
-   download_grb_data
+   prepare_source_data
    install_tools
 fi
 
