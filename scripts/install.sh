@@ -59,6 +59,14 @@ echo "nl_BE.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
 # Functions
 
+function install_tools {
+    # we gonna need a few tools , start with GDAL (for ogr)
+    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz cd gdal-2.2.0 && ./configure && make -j 4 && make install
+    # ogr2osm from Peter Norman
+    cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
+    # need to add this directory to PATH
+}
+
 function create_db_ini_file {
    echo "user     = ${USER}" > $DB_CREDENTIALS
    echo "database = ${DATA_DB}" >> $DB_CREDENTIALS
@@ -68,11 +76,22 @@ function create_db_ini_file {
 
 download_grb_data {
     # downloading GRB data from CDN
-    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip
-    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip
-    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip
-    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip
-    cd /usr/local/src && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip
+    echo "downloading data"
+    mkdir /usr/local/src/grb
+    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip
+    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip
+    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip
+    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip
+    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip
+
+    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
+    echo "extracting data"
+    # unpacking data
+    cd /usr/local/src/grb && GRBgis_10000B500.zip -d GRBgis_10000
+    cd /usr/local/src/grb && GRBgis_20001B500.zip -d GRBgis_20001
+    cd /usr/local/src/grb && GRBgis_30000B500.zip -d GRBgis_30000
+    cd /usr/local/src/grb && GRBgis_40000B500.zip -d GRBgis_40000
+    cd /usr/local/src/grb && GRBgis_70000B500.zip -d GRBgis_70000
 }
 
 # Create an aliases file so we can use short commands to navigate a project
@@ -164,7 +183,7 @@ echo "Install specific packages ..."
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql
+        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis
 
         touch /home/${DEPLOY_USER}/.hushlogin
         chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
@@ -387,6 +406,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_grb_sources
    create_bash_alias
    download_grb_data
+   install_tools
 fi
 
 echo "Provisioning done"
