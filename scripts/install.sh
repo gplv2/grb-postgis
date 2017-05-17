@@ -87,7 +87,9 @@ function prepare_source_data {
     # downloading GRB data from CDN
     echo "downloading data"
     mkdir /usr/local/src/grb
+    mkdir /datastore2/out
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
+    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datastore2/out
 
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip"

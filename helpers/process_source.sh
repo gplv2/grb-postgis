@@ -101,11 +101,38 @@ done
 
 echo "OSMOSIS MERGE"
 echo "============="
-##TEMPrm -f merged.osm
-#osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gbg30000.osm --rx Gba10000.osm --rx Gba20001.osm --rx Gba30000.osm --merge --merge --merge --merge --merge --wx merged.osm
-#osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gba10000.osm --rx Gba20001.osm --merge --merge --merge --wx merged.osm
 
-osmosis --rx Gbg10000B500.osm --rx Gbg20001B500.osm --rx Gbg30000B500.osm --rx Gbg40000B500.osm --rx Gbg70000B500.osm --rx Gba10000B500.osm --rx Gba20001B500.osm --rx Gba30000B500.osm --rx Gba40000B500.osm --rx Gba70000B500.osm --rx Knw10000B500.osm --rx Knw20001B500.osm --rx Knw30000B500.osm --rx Knw40000B500.osm --rx Knw70000B500.osm --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --wx /datastore2/all_merged.osm
+osmosis  \
+--rx Gbg10000B500.osm  \
+--rx Gbg20001B500.osm  \
+--rx Gbg30000B500.osm  \
+--rx Gbg40000B500.osm  \
+--rx Gbg70000B500.osm  \
+--rx Gba10000B500.osm  \
+--rx Gba20001B500.osm  \
+--rx Gba30000B500.osm  \
+--rx Gba40000B500.osm  \
+--rx Gba70000B500.osm  \
+--rx Knw10000B500.osm  \
+--rx Knw20001B500.osm  \
+--rx Knw30000B500.osm  \
+--rx Knw40000B500.osm  \
+--rx Knw70000B500.osm  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--merge  \
+--wx /datadisk2/out/all_merged.osm
 
 # postgresql work
 
