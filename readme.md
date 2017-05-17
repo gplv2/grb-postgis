@@ -134,9 +134,9 @@ See what is going to happen when you execute `terraform` exec:
     The refreshed state will be used to calculate this plan, but
     will not be persisted to local or remote state storage.
 
-    google_compute_http_health_check.sandbox_test: Refreshing state... (ID: tf-sandbox-basic-check)
-    google_compute_firewall.sandbox-firewall: Refreshing state... (ID: tf-sandbox-firewall)
-    google_compute_instance.sandbox: Refreshing state... (ID: tf-sandbox-0)
+    google_compute_http_health_check.sandbox_test: Refreshing state... (ID: grb-sandbox-basic-check)
+    google_compute_firewall.sandbox-firewall: Refreshing state... (ID: grb-sandbox-firewall)
+    google_compute_instance.sandbox: Refreshing state... (ID: grb-sandbox-0)
     google_compute_instance_group.sandbox: Refreshing state... (ID: terraform-sandbox)
 
     No changes. Infrastructure is up-to-date. This means that Terraform
@@ -160,7 +160,7 @@ Watch the magic.  The provisioner script installation is set in bash debug mode,
 
     glenn@slicky:~/repos/terraform$ gcloud compute instances list
     NAME       ZONE            MACHINE_TYPE               PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
-    tf-db-0    europe-west1-d  custom (1 vCPU, 2.00 GiB)               10.132.0.5   204.255.58.142  RUNNING
+    grb-db-0    europe-west1-d  custom (1 vCPU, 2.00 GiB)               10.132.0.5   204.255.58.142  RUNNING
 
 # Sandbox Uses
 
