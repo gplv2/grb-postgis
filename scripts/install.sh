@@ -110,15 +110,11 @@ function prepare_source_data {
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "Setting up bash aliases : psqlc home"
-
     # the db alias : psql -h grb-db-0 -d grb-temp -U grb-data
-    PSQL_START="alias psqlc=\''psql -h grb-db-0 -d ${DATA_DB} -U ${USER}'\'"
-    echo $PSQL_START >> /root/.bash_aliases
-    sudo su - $DEPLOY_USER -c "echo ${PSQL_START} >> ~/.bash_aliases"
-
-    GO_HOME="alias home=\''cd ${PROJECT_DIRECTORY}'\'"
-    echo $GO_HOME >> /root/.bash_aliases
-    sudo su - $DEPLOY_USER -c "echo ${GO_HOME} >> ~/.bash_aliases"
+cat > /root/.bash_aliases << EOF
+alias psqlc='psql -h grb-db-0 -d ${DATA_DB} -U ${USER}'
+alias home='cd ${PROJECT_DIRECTORY}'
+EOF
 }
 
 function install_grb_sources {
