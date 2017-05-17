@@ -273,6 +273,7 @@ EOF
 cat > /tmp/install.postgis.sql << EOF
 CREATE EXTENSION postgis; 
 CREATE EXTENSION postgis_topology;
+CREATE EXTENSION hstore;
 EOF
 
     if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
