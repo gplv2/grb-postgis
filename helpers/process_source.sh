@@ -66,13 +66,14 @@ do
  	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
  fi
 
+# we problably need to run the second sed for the first line only like this sed -i '1!b;s/test/blah/' file
 # KNW
  if [ $entity == 'Knw' ] 
     then
     echo "running gbg sed\n"
     # mapping the entities to the OSM equivalent
  	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/shed/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Knw"/g' -i "${filename}.osm"
-    # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
+    # this line is needed for osmosis to accept the OSM file so we need to add it to the osm file using sed to replace
  	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
  fi
 
@@ -82,7 +83,7 @@ do
     echo "running gba sed\n"
     # mapping the entities to the OSM equivalent
  	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gba"/g' -i "${filename}.osm"
-    # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
+    # this line is needed for osmosis to accept the OSM file we crated  so we need to add it to the osm file using sed to replace
  	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
  fi
 
@@ -98,25 +99,21 @@ do
 # echo -n $file
 done
 
-exit
-
 echo "OSMOSIS MERGE"
 echo "============="
 ##TEMPrm -f merged.osm
 #osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gbg30000.osm --rx Gba10000.osm --rx Gba20001.osm --rx Gba30000.osm --merge --merge --merge --merge --merge --wx merged.osm
 #osmosis --rx Gbg10000.osm --rx Gbg20001.osm --rx Gba10000.osm --rx Gba20001.osm --merge --merge --merge --wx merged.osm
 
-#osmosis --rx Gbg04000.osm --rx Gbg10000.osm --rx Gbg20001.osm --rx Gbg30000.osm --rx Gbg40000.osm --rx Gbg70000.osm --rx Gba04000.osm --rx Gba10000.osm --rx Gba20001.osm --rx Gba30000.osm --rx Gba40000.osm --rx Gba70000.osm --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --wx merged.osm
+osmosis --rx Gbg10000B500.osm --rx Gbg20001B500.osm --rx Gbg30000B500.osm --rx Gbg40000B500.osm --rx Gbg70000B500.osm --rx Gba10000B500.osm --rx Gba20001B500.osm --rx Gba30000B500.osm --rx Gba40000B500.osm --rx Gba70000B500.osm --rx Knw10000B500.osm --rx Knw20001B500.osm --rx Knw30000B500.osm --rx Knw40000B500.osm --rx Knw70000B500.osm --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --merge --wx /datastore2/all_merged.osm
 
-#  postgresql work
+# postgresql work
 
  echo ""
  echo "IMPORT"
  echo "======"
-#/usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data merged.osm
 
-# echo /usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data "${filename}_addressed.osm"
-# /usr/bin/osm2pgsql --slim --create --cache 1000 --number-processes 2 --hstore --style /usr/local/src/osm/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data "${filename}_addressed.osm"
+ /usr/bin/osm2pgsql --slim --create --cache 2000 --number-processes 2 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb -U grb-data /datastore2/merged.osm
 
 echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
 echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default");' | psql -U grb-data grb
@@ -126,15 +123,14 @@ echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("s
 #echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
 #echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
 
-# setup source tag for all objects
+# setup source tag for all objects imported
 echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb
 
+# more indexes
 echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default");' | psql -U grb-data grb
 
-# use a query to update 'trap' as this word is a bit too short to do with sed
+# use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
 echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb
-
-exit;
 
 # more to change using queries :
 
@@ -156,18 +152,16 @@ exit;
 #    <tag k="building" v="watertoren"/>
 
 
-#/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf,GRBgis_10000/Shapefile/TblGbgAdr10000.dbf,GRBgis_30000/Shapefile/TblGbgAdr30000.dbf
+/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf,GRBgis_10000/Shapefile/TblGbgAdr10000.dbf,GRBgis_30000/Shapefile/TblGbgAdr30000.dbf,GRBgis_40000/Shapefile/TblGbgAdr40000.dbf,GRBgis_70000/Shapefile/TblGbgAdr70000.dbf
 
 # address directly in the database using DBF database file, the tool will take care of all anomalities encountered
-/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf
-/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_10000/Shapefile/TblGbgAdr10000.dbf
-/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_30000/Shapefile/TblGbgAdr30000.dbf
+#/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_20001/Shapefile/TblGbgAdr20001.dbf
+#/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_10000/Shapefile/TblGbgAdr10000.dbf
+#/usr/local/bin/grb2osm/grb2osm.php -f GRBgis_30000/Shapefile/TblGbgAdr30000.dbf
 
 echo ""
 echo "Flush cache"
 echo "==========="
  # flush redis cache
 echo "flushall" | redis-cli 
-
-exit;
 
