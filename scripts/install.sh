@@ -62,13 +62,13 @@ locale-gen
 # Functions
 function install_tools {
     # we gonna need a few tools , start with GDAL (for ogr)
-    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install
+    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install && ldconfig
     # ogr2osm from Peter Norman
     cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
-
+    export PATH=$PATH:/usr/local/bin/ogr2osm
     # carto CSS for building our custom OSM DB
-    mkdir /usr/local/src/osm/ && cd /usr/local/src/osm/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
+    cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
 }
 
 function process_source_data {
