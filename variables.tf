@@ -31,13 +31,13 @@ variable "aws_secret_key" {
 variable "project_dns_name" {
   type        = "string"
   description = "The hosting zone our frontend hosts will be known on"
-  default     = "zandbak.pro."
+  default     = "byteless.net."
 }
 
 variable "project_a_record" {
   type        = "string"
   description = "The A record"
-  default     = "prod"
+  default     = "grb"
 }
 
 variable "credentials_file_path" {
@@ -65,17 +65,3 @@ variable "install_script_dest_path" {
   default = "/tmp/install.sh"
 }
 
-variable "preproc_count" {
-  description = "Initial count for preprocessing node"
-  default = "0"
-}
-
-variable "batch_count" {
-  description = "Count for batch processing node default=0" 
-  default = "0"
-}
-
-variable "nnc_count" {
-  description = "Initial count for Nearest Neighbour node"
-  default = "0"
-}

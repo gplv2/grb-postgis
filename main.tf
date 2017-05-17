@@ -77,7 +77,7 @@ resource "google_compute_instance" "db" {
     }
   }
 
-# Copies the bitbucket keys over
+# Copies the deployment keys over
   provisioner "file" {
     source = "keys/"
     destination = "/root/.ssh/"
@@ -90,7 +90,7 @@ resource "google_compute_instance" "db" {
   }
 
 
-# installs the config
+# installs helper script to set kernel shared segment size
   provisioner "file" {
     source = "scripts/shmsetup.sh"
     destination = "/usr/local/bin/shmsetup.sh"
@@ -253,6 +253,8 @@ resource "google_compute_firewall" "default" {
   target_tags = ["www-node"]
 }
 
+# this is the S3 remote TF state location, it's meant to be used when you
+# work in teams
 terraform {
   backend "s3" {
     bucket     = "my-tf-states"
