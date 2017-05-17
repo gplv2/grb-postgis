@@ -140,7 +140,7 @@ osmosis  \
  echo "IMPORT"
  echo "======"
 
-/usr/bin/osm2pgsql --slim --create --cache 2000 --number-processes 2 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datastore2/all_merged.osm -H grb-db-0
+/usr/bin/osm2pgsql --slim --create --cache 2000 --number-processes 2 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
 
 echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb_api -h grb-db-0
 echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default");' | psql -U grb-data grb_api -h grb-db-0
