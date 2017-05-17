@@ -1,5 +1,5 @@
 #!/bin/bash
-# http://archives.postgresql.org/pgsql-admin/2010-05/msg00285.php
+# see http://archives.postgresql.org/pgsql-admin/2010-05/msg00285.php
 # Output lines suitable for sysctl configuration based
 # on total amount of RAM on the system.  The output
 # will allow up to 50% of physical memory to be allocated
@@ -9,10 +9,6 @@
 #
 # ./shmsetup >> /etc/sysctl.conf
 # sysctl -p
-
-# Early FreeBSD versions do not support the sysconf interface
-# used here.  The exact version where this works hasn't
-# been confirmed yet.
 
 page_size=`getconf PAGE_SIZE`
 phys_pages=`getconf _PHYS_PAGES`
@@ -34,3 +30,6 @@ echo \# Maximum shared segment size in bytes
 echo kernel.shmmax = $shmmax
 echo \# Maximum number of shared memory segments in pages
 echo kernel.shmall = $shmall
+
+# reload
+sysctl -p

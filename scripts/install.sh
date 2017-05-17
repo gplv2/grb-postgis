@@ -62,18 +62,22 @@ locale-gen
 # Functions
 function install_tools {
     # we gonna need a few tools , start with GDAL (for ogr)
-    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install && ldconfig
     # ogr2osm from Peter Norman
     cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
     export PATH=$PATH:/usr/local/bin/ogr2osm
     # carto CSS for building our custom OSM DB
     cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
+    # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
+    cp /tmp/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
 }
 
 function process_source_data {
     # call external script
     su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
+    # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 }
 
 function create_db_ini_file {
@@ -91,12 +95,13 @@ function prepare_source_data {
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datastore2/out
 
+    # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_10000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20001B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_30000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_40000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_70000B500.zip"
 
     echo "extracting data"
     # unpacking all provinces data
@@ -125,7 +130,6 @@ function install_grb_sources {
 
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
-
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grb2osm.git grb2osm"
     su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
@@ -223,6 +227,31 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then 
         echo "Enable listening on all interfaces"
         sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
+        echo "Configuring shared buffers"
+        page_size=`getconf PAGE_SIZE`
+        phys_pages=`getconf _PHYS_PAGES`
+
+        if [ -z "$page_size" ] -o [ -z "$phys_pages" ]; then
+            echo Error:  cannot determine page size/number of pages
+        else
+            shmall=`expr $phys_pages / 2`
+            echo "Maximum shared segment size in bytes: $shmmax"
+            # converting this to a safe GB value for postgres
+            postgres_shared=`expr $phys_pages / 1024 / 1024 / 1000`
+            echo "Postgres shared buffer size in GB: $postgres_shared"
+            echo "Configuring memory settings"
+            sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#work_mem = 4MB/work_mem = 256MB/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 1024MB/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#fsync = on/fsync = on/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#temp_buffers = 8MB/temp_buffers = 16MB/" /etc/postgresql/9.5/main/postgresql.conf
+            echo "Configuring checkpoint settings"
+            sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/9.5/main/postgresql.conf
+            sed -i "s/#checkpoint_completion_target = 0.5/checkpoint_completion_target = 0.7/" /etc/postgresql/9.5/main/postgresql.conf
+        fi
+        echo "Done with changing postgresql settings, we need to restart postgres for them to take effect"
     fi
 
     # set network
@@ -246,20 +275,20 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     mkdir /datadisk1/pg_db /datadisk2/pg_in
     chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in
 
-cat > /tmp/install.gis.sql << EOF
+cat > /tmp/install.tablespaces.sql << EOF
 CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
 CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
 EOF
 
-    su - postgres -c "cat /tmp/install.gis.sql | psql -d $DB"
+    su - postgres -c "cat /tmp/install.tablespaces.sql | psql -d $DB"
 
     # set default TS
-cat > /tmp/install.ts.sql << EOF
+cat > /tmp/alter.ts.sql << EOF
 ALTER DATABASE ${DB} SET TABLESPACE dbspace;
 ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
 ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
 EOF
-    su - postgres -c "cat /tmp/install.ts.sql | psql"
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
@@ -269,9 +298,9 @@ EOF
         su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
     fi
     
-    # create additional DB for raw data storage for preprocessing service (only on db node, not onboarding)
+    # create additional DB for alternative datatest
     if [ "${RES_ARRAY[1]}" = "db" ]; then
-        echo "Creating 2nd GIS db "
+        echo "Creating 2nd GIS db"
        if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
           su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
        fi
@@ -431,12 +460,13 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     /etc/init.d/ssh restart
 fi
 
-# install GRB stuff
+# Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_grb_sources
    create_bash_alias
    prepare_source_data
    install_tools
+   process_source_data
 fi
 
 echo "Provisioning done"
