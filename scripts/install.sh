@@ -53,18 +53,22 @@ echo "LC_ALL=en_US.UTF-8" >> /etc/environment
 # fix locales
 locale-gen "en_US.UTF-8"
 locale-gen "nl_BE.UTF-8"
+locale-gen "fr_BE.UTF-8"
 
-echo "nl_BE.UTF-8 UTF-8" >> /etc/locale.gen
+echo "nl_BE.UTF-8 fr_BE.UTF-8 UTF-8" >> /etc/locale.gen
 
 locale-gen
-# Functions
 
+# Functions
 function install_tools {
     # we gonna need a few tools , start with GDAL (for ogr)
-    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz cd gdal-2.2.0 && ./configure && make -j 4 && make install
+    cd /usr/local/src/ && wget http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install
     # ogr2osm from Peter Norman
     cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
+
+    # carto CSS for building our custom OSM DB
+    mkdir /usr/local/src/osm/ && cd /usr/local/src/osm/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
 }
 
 function process_source_data {
@@ -93,11 +97,11 @@ function prepare_source_data {
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
     echo "extracting data"
     # unpacking data
-    cd /usr/local/src/grb && GRBgis_10000B500.zip -d GRBgis_10000
-    cd /usr/local/src/grb && GRBgis_20001B500.zip -d GRBgis_20001
-    cd /usr/local/src/grb && GRBgis_30000B500.zip -d GRBgis_30000
-    cd /usr/local/src/grb && GRBgis_40000B500.zip -d GRBgis_40000
-    cd /usr/local/src/grb && GRBgis_70000B500.zip -d GRBgis_70000
+    cd /usr/local/src/grb && unzip GRBgis_10000B500.zip -d GRBgis_10000
+    cd /usr/local/src/grb && unzip GRBgis_20001B500.zip -d GRBgis_20001
+    cd /usr/local/src/grb && unzip GRBgis_30000B500.zip -d GRBgis_30000
+    cd /usr/local/src/grb && unzip GRBgis_40000B500.zip -d GRBgis_40000
+    cd /usr/local/src/grb && unzip GRBgis_70000B500.zip -d GRBgis_70000
 }
 
 # Create an aliases file so we can use short commands to navigate a project
@@ -154,7 +158,7 @@ fi
 
 echo "Preparing for ubuntu %s - %s" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
 
-DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate
+DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server
 
 echo "Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}"
 # Adding a deploy user
@@ -211,7 +215,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # DISTRIB_RELEASE=16.04
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2
+        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev
         apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
     fi
 
