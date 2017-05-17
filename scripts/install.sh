@@ -245,6 +245,25 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # service postgresql restart # Gives no output, so take old school one
     /etc/init.d/postgresql restart
 
+    # create 2 tablespaces for index and for data
+    mkdir /datadisk1/pg_db /datadisk2/pg_in
+    chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in
+
+cat > /tmp/install.gis.sql << EOF
+CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
+CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
+EOF
+
+    su - postgres -c "cat /tmp/install.gis.sql | psql -d $DB"
+
+    # set default TS
+cat > /tmp/install.ts.sql << EOF
+ALTER DATABASE ${DB} SET TABLESPACE dbspace;
+ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
+ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
+EOF
+    su - postgres -c "cat /tmp/install.ts.sql | psql"
+
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
 
