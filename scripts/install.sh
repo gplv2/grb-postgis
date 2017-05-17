@@ -73,7 +73,7 @@ function install_tools {
 
 function process_source_data {
     # call external script
-    /tmp/process_source.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
 }
 
 function create_db_ini_file {
@@ -87,21 +87,22 @@ function prepare_source_data {
     # downloading GRB data from CDN
     echo "downloading data"
     mkdir /usr/local/src/grb
-    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip
-    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip
-    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip
-    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip
-    cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip
-
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
+
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_10000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_20001B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_30000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_40000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget http://debian.byte-consult.be/grb/GRBgis_70000B500.zip"
+
     echo "extracting data"
-    # unpacking data
-    cd /usr/local/src/grb && unzip GRBgis_10000B500.zip -d GRBgis_10000
-    cd /usr/local/src/grb && unzip GRBgis_20001B500.zip -d GRBgis_20001
-    cd /usr/local/src/grb && unzip GRBgis_30000B500.zip -d GRBgis_30000
-    cd /usr/local/src/grb && unzip GRBgis_40000B500.zip -d GRBgis_40000
-    cd /usr/local/src/grb && unzip GRBgis_70000B500.zip -d GRBgis_70000
+    # unpacking all provinces data
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_10000B500.zip -d GRBgis_10000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20001B500.zip -d GRBgis_20001"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_30000B500.zip -d GRBgis_30000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_40000B500.zip -d GRBgis_40000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_70000B500.zip -d GRBgis_70000"
 }
 
 # Create an aliases file so we can use short commands to navigate a project
@@ -215,7 +216,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # DISTRIB_RELEASE=16.04
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev
+        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
         apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
     fi
 

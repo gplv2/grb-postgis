@@ -1,13 +1,14 @@
 #!/bin/bash
 
+cd /usr/local/src/grb
+
 # This script has been converted from the beta development site
 
-
-echo "Reset counter $file"
-
 # We need to keep track of the ogr2osm id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
+# default value is zero but the file does need to exists if you use the option
 #echo "15715818" > ogr2osm.id
-
+echo "Reset counter $file"
+echo "0" > ogr2osm.id
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space
 # fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
@@ -20,10 +21,7 @@ echo "Reset counter $file"
 #fuse-zip -o ro files/GRBgis_70000.zip GRBgis_70000
 #fuse-zip -o ro files/GRBgis_04000.zip GRBgis_04000
 
-#for file in GRBgis_*/Shapefile/Gba*.shp
-for file in GRBgis_40000/Shapefile/Gbg*.shp GRBgis_04000/Shapefile/Gbg*.shp GRBgis_70000/Shapefile/Gbg*.shp GRBgis_40000/Shapefile/Gba*.shp GRBgis_04000/Shapefile/Gba*.shp GRBgis_70000/Shapefile/Gba*.shp
-#for file in GRBgis_40000/Shapefile/Knw*.shp GRBgis_04000/Shapefile/Knw*.shp GRBgis_70000/Shapefile/Knw*.shp GRBgis_40000/Shapefile/Gba*.shp GRBgis_04000/Shapefile/Gba*.shp GRBgis_70000/Shapefile/Gba*.shp
-#for file in GRBgis_*/Shapefile/Knw*.shp
+for file in GRBgis_10000/Shapefile/Gbg*.shp GRBgis_20001/Shapefile/Gbg*.shp GRBgis_30000/Shapefile/Gbg*.shp GRBgis_40000/Shapefile/Gbg*.shp GRBgis_70000/Shapefile/Gbg*.shp GRBgis_10000/Shapefile/Gba*.shp GRBgis_20001/Shapefile/Gba*.shp GRBgis_30000/Shapefile/Gba*.shp GRBgis_40000/Shapefile/Gba*.shp GRBgis_70000/Shapefile/Gba*.shp GRBgis_10000/Shapefile/Knw*.shp GRBgis_20001/Shapefile/Knw*.shp GRBgis_30000/Shapefile/Knw*.shp GRBgis_40000/Shapefile/Knw*.shp GRBgis_70000/Shapefile/Knw*.shp
 
 do
  echo "Processing $file"
@@ -45,6 +43,7 @@ do
  echo "OGR2OGR"
  echo "======="
  echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
+
  /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  echo "\n"
