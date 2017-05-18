@@ -173,7 +173,7 @@ CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) WHERE (man_m
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/install.tablespaces.sql | psql -U grb-data grb_api -h grb-db-0
+cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h grb-db-0
 
 # more to change using queries :
 
