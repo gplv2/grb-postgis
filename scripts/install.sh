@@ -75,7 +75,9 @@ function install_tools {
 
 function process_source_data {
     # call external script
+    chmod +x /tmp/process_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
+
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
 }
