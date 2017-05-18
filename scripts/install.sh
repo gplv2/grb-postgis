@@ -231,8 +231,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         page_size=`getconf PAGE_SIZE`
         phys_pages=`getconf _PHYS_PAGES`
 
-        if [ -z "$page_size" ] -o [ -z "$phys_pages" ]; then
-            echo Error:  cannot determine page size/number of pages
+        if [ -z "phys_pages" ]; then
+            echo "Error:  cannot determine page size"
         else
             shmall=`expr $phys_pages / 2`
             shmmax=`expr $shmall \* $page_size` 
