@@ -169,7 +169,6 @@ CREATE INDEX idx_pop_hw_null ON planet_osm_polygon USING gist (way) WHERE (highw
 CREATE INDEX idx_pop_no_hw ON planet_osm_polygon USING gist (way) WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
 CREATE INDEX idx_pop_no_b ON planet_osm_polygon USING gist (way) WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
 CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) WHERE (building IS NOT NULL);
-CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) WHERE (man_made IS NOT NULL);
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
