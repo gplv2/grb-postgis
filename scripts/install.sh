@@ -91,9 +91,9 @@ function prepare_source_data {
     # downloading GRB data from CDN
     echo "downloading data"
     mkdir /usr/local/src/grb
-    mkdir /datastore2/out
+    mkdir /datadisk2/out
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
-    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datastore2/out
+    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datadisk2/out
 
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
@@ -133,7 +133,7 @@ function install_grb_sources {
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grb2osm.git grb2osm"
     su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
-    su - ${DEPLOY_USER} -c "chmod +x ${DEPLOY_USER}/grb2osm/grb2osm.php"
+    su - ${DEPLOY_USER} -c "chmod +x /home/${DEPLOY_USER}/grb2osm/grb2osm.php"
 
     # with submodules
     su - ${DEPLOY_USER} -c "git clone --recursive https://github.com/gplv2/grb2pgsql.git grb2pgsql"
@@ -281,7 +281,7 @@ CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
 CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
 EOF
 
-    su - postgres -c "cat /tmp/install.tablespaces.sql | psql -d $DB"
+    su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
 
     # set default TS
 cat > /tmp/alter.ts.sql << EOF
