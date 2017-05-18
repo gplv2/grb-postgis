@@ -235,6 +235,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
             echo Error:  cannot determine page size/number of pages
         else
             shmall=`expr $phys_pages / 2`
+            shmmax=`expr $shmall \* $page_size` 
             echo "Maximum shared segment size in bytes: $shmmax"
             # converting this to a safe GB value for postgres
             postgres_shared=`expr $phys_pages / 1024 / 1024 / 1000`
