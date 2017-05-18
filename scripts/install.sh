@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
@@ -236,10 +236,10 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         else
             shmall=`expr $phys_pages / 2`
             shmmax=`expr $shmall \* $page_size` 
-            echo "Maximum shared segment size in bytes: $shmmax"
+            echo "Maximum shared segment size in bytes: ${shmmax}"
             # converting this to a safe GB value for postgres
-            postgres_shared=`expr $phys_pages / 1024 / 1024 / 1000`
-            echo "Postgres shared buffer size in GB: $postgres_shared"
+            postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
+            echo "Postgres shared buffer size in GB: ${postgres_shared}"
             echo "Configuring memory settings"
             sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
             sed -i "s/#work_mem = 4MB/work_mem = 256MB/" /etc/postgresql/9.5/main/postgresql.conf
