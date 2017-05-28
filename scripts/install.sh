@@ -196,6 +196,22 @@ fi
 # for all servers
 echo "Install specific packages ..."
 
+if [ "${RES_ARRAY[1]}" = "www" ]; then
+    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        echo "Install $DISTRIB_RELEASE packages ..."
+        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify
+
+        touch /home/${DEPLOY_USER}/.hushlogin
+        chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
+    fi
+
+    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        echo "Updating global Composer ..."
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    fi
+fi
+
+
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
