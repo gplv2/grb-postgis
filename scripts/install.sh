@@ -105,19 +105,19 @@ function prepare_source_data {
 
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_10000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20001B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_30000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_40000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_70000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_10000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_20001B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_30000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_40000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_70000B500.zip"
 
     echo "extracting data"
     # unpacking all provinces data
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_10000B500.zip -d GRBgis_10000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20001B500.zip -d GRBgis_20001"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_30000B500.zip -d GRBgis_30000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_40000B500.zip -d GRBgis_40000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_70000B500.zip -d GRBgis_70000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_30000B500.zip -d GRBgis_30000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
 
     echo "Done preparing sources"
 }
