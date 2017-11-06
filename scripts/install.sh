@@ -61,8 +61,14 @@ locale-gen
 
 # Functions
 function install_tools {
+    echo "Going to install our toolbox.."
+    echo "Building GDAL"
     # we gonna need a few tools , start with GDAL (for ogr)
-    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 4 && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 6 && make install && ldconfig
+
+    echo "Building osm2pgsql"
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j 6 && make install
+
     # ogr2osm from Peter Norman
     cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
@@ -90,8 +96,8 @@ function create_db_ini_file {
 }
 
 function prepare_source_data {
-    # downloading GRB data from CDN
-    echo "downloading data"
+    # downloading GRB data from private CDN or direct source
+    echo "downloading all source data"
     mkdir /usr/local/src/grb
     mkdir /datadisk2/out
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
@@ -112,6 +118,8 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_30000B500.zip -d GRBgis_30000"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_40000B500.zip -d GRBgis_40000"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_70000B500.zip -d GRBgis_70000"
+
+    echo "Done preparing sources"
 }
 
 # Create an aliases file so we can use short commands to navigate a project
@@ -199,7 +207,7 @@ echo "Install specific packages ..."
 if [ "${RES_ARRAY[1]}" = "www" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify
+        DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify
 
         touch /home/${DEPLOY_USER}/.hushlogin
         chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
@@ -215,7 +223,7 @@ fi
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis osm2pgsql
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis 
 
         touch /home/${DEPLOY_USER}/.hushlogin
         chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
@@ -237,8 +245,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # DISTRIB_RELEASE=16.04
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
-        apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
     fi
 
     # enable listen
@@ -297,9 +305,10 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
 cat > /tmp/install.tablespaces.sql << EOF
 CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
 CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
+GRANT ALL PRIVILEGES ON TABLESPACE dbspace TO "${USER}" WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON TABLESPACE indexspace TO "${USER}" WITH GRANT OPTION;
 EOF
 
-    su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
 
     # set default TS
 cat > /tmp/alter.ts.sql << EOF
@@ -307,7 +316,6 @@ ALTER DATABASE ${DB} SET TABLESPACE dbspace;
 ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
 ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
 EOF
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
     echo "Preparing Database ... $DB / $USER "
     # su postgres -c "dropdb $DB --if-exists"
@@ -324,6 +332,9 @@ EOF
           su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
        fi
     fi
+    echo "GRANT privileges on tablespaces to $USER"
+    su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
     echo "Changing user password ..."
 cat > /tmp/install.postcreate.sql << EOF
