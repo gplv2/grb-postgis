@@ -99,6 +99,14 @@ do
 # echo -n $file
 done
 
+if [ $? -eq 0 ]
+then
+  echo "Successfully parsed GRB sources"
+else
+  echo "Could not process sources file" >&2
+  exit 1
+fi
+
 echo "OSMOSIS MERGE"
 echo "============="
 
@@ -134,6 +142,14 @@ osmosis  \
 --merge  \
 --wx /datadisk2/out/all_merged.osm
 
+if [ $? -eq 0 ]
+then
+  echo "Successfully merged GRB sources"
+else
+  echo "Could not merge sources file" >&2
+  exit 1
+fi
+
 # postgresql work
 
  echo ""
@@ -142,6 +158,15 @@ osmosis  \
 
 # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
 /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 4 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+
+if [ $? -eq 0 ]
+then
+  echo "Successfully imported processed sources into PGSQL"
+  exit 0
+else
+  echo "Could not import merged source files" >&2
+  exit 1
+fi
 
 echo "Creating additional indexes..."
 
@@ -177,6 +202,15 @@ EOF
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
 cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h grb-db-0
 
+if [ $? -eq 0 ]
+then
+  echo "Successfully created indexes/updates"
+  exit 0
+else
+  echo "Could not execute indexing/updates" >&2
+  exit 1
+fi
+
 # more to change using queries :
 
 #    <tag k="building" v="cabine"/>
@@ -201,6 +235,15 @@ cd ~
 
 # address directly in the database using DBF database file, the tool will take care of all anomalities encountered (knw/Gbg)
 grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
+
+if [ $? -eq 0 ]
+then
+  echo "Successfully imported addresses into DB"
+  exit 0
+else
+  echo "Could not address into DB" >&2
+  exit 1
+fi
 
 echo ""
 echo "Flush cache"
