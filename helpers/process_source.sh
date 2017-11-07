@@ -144,7 +144,25 @@ osmosis  \
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully merged GRB sources"
+    echo "Successfully merged GRB sources"
+    echo "Cleaning up diskspace - removing zip files"
+    cd /usr/local/src/grb && rm -f *.zip
+    echo "Cleaning up diskspace - removing parsed files"
+    rm -f Gbg10000B500.osm 
+    rm -f Gbg20001B500.osm
+    rm -f Gbg30000B500.osm
+    rm -f Gbg40000B500.osm
+    rm -f Gbg70000B500.osm
+    rm -f Gba10000B500.osm
+    rm -f Gba20001B500.osm
+    rm -f Gba30000B500.osm
+    rm -f Gba40000B500.osm
+    rm -f Gba70000B500.osm
+    rm -f Knw10000B500.osm
+    rm -f Knw20001B500.osm
+    rm -f Knw30000B500.osm
+    rm -f Knw40000B500.osm
+    rm -f Knw70000B500.osm
 else
   echo "Could not merge sources file" >&2
   exit 1
