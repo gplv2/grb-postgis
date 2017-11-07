@@ -68,7 +68,22 @@ function install_tools {
 
     echo "Building osm2pgsql"
     cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j 6 && make install
+    echo "Building osmium"
+    cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j 6 && make install
 
+    # building osmium-tool
+    #    git clone https://github.com/osmcode/libosmium.git
+    #    git clone https://github.com/osmcode/osmium-tool.git
+    #    cd osmium-tool/
+    #    mkdir build
+    #    cd build
+    #    cmake ..
+    #    make
+
+    #.configure && make -j 6 && make install && ldconfig
+
+    # ogr2osm from Peter Norman (use a fork because there is a performance issue)
+    #cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # ogr2osm from Peter Norman
     cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
@@ -79,6 +94,28 @@ function install_tools {
     cp /tmp/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
 }
 
+function install_compile_packages {
+    # we need to prepare a partial tilesever setup so we can load belgium in a postGIS database , there might be some duplicate packages with the rest of this script
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libgeos-dev libgeos++-dev libpq-dev libproj-dev libprotobuf-c0-dev libxml2-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont liblua5.1-dev libgeotiff-epsg fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted python-yaml make cmake g++ libboost-dev libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev libbz2-dev libpq-dev liblua5.2-dev osmctools libprotozero-dev libutfcpp-dev rapidjson-dev pandoc clang-tidy cppcheck iwyu recode
+
+    # postgis is already present, so skip that step, but nodejs is not
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nodejs
+    # these libraries are needed to compile osm2pgsql from source
+}
+
+function load_osm_data {
+    # the data should be present in /usr/loca/src/grb workdir
+    # make use of the pgsql tablespace setup having the indexes on a second disk, this speeds up import significantly
+    #      --tablespace-main-data    tablespace for main tables
+    #      --tablespace-main-index   tablespace for main table indexes
+    #      --tablespace-slim-data    tablespace for slim mode tables
+    #      --tablespace-slim-index   tablespace for slim mode indexes
+
+    # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
+    /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 4 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d grb_api -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+}
 function process_source_data {
     # call external script
     chmod +x /tmp/process_source.sh
@@ -495,6 +532,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_grb_sources
    create_bash_alias
    prepare_source_data
+   install_compile_packages
    install_tools
    process_source_data
 fi
