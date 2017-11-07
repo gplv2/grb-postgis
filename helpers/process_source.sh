@@ -188,19 +188,19 @@ fi
 
 echo "Creating additional indexes..."
 
-echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb_api -h grb-db-0
-echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default");' | psql -U grb-data grb_api -h grb-db-0
-#echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default");' | psql -U grb-data grb
+echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+#echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
+#echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
 
 # setup source tag for all objects imported
 echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h grb-db-0
 
 # more indexes
-echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default");' | psql -U grb-data grb_api -h grb-db-0
+echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
 
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
 echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h grb-db-0
@@ -208,13 +208,13 @@ echo "UPDATE planet_osm_polygon set highway='steps', building='' where building=
 echo "creating additional indexes..."
 
 cat > /tmp/create.indexes.sql << EOF
-CREATE INDEX idx_planet_osm_line_nobridge ON planet_osm_polygon USING gist (way) WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
-CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) WHERE (man_made IS NOT NULL);
-CREATE INDEX idx_pop_no_bridge ON planet_osm_polygon USING gist (way) WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_pop_hw_null ON planet_osm_polygon USING gist (way) WHERE (highway IS NOT NULL);
-CREATE INDEX idx_pop_no_hw ON planet_osm_polygon USING gist (way) WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_pop_no_b ON planet_osm_polygon USING gist (way) WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) WHERE (building IS NOT NULL);
+CREATE INDEX idx_planet_osm_line_nobridge ON planet_osm_polygon USING gist (way) WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL) TABLESPACE indexspace;
+CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) WHERE (man_made IS NOT NULL) TABLESPACE indexspace;
+CREATE INDEX idx_pop_no_bridge ON planet_osm_polygon USING gist (way) WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
+CREATE INDEX idx_pop_hw_null ON planet_osm_polygon USING gist (way) WHERE (highway IS NOT NULL) TABLESPACE indexspace;
+CREATE INDEX idx_pop_no_hw ON planet_osm_polygon USING gist (way) WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
+CREATE INDEX idx_pop_no_b ON planet_osm_polygon USING gist (way) WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
+CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) WHERE (building IS NOT NULL) TABLESPACE indexspace;
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
