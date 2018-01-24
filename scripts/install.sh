@@ -63,8 +63,8 @@ locale-gen
 function install_tools {
     echo "Going to install our toolbox.."
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler
-    echo "Building protozero library"
 
+    echo "Building protozero library"
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
     cd /usr/local/src/ && git clone --recursive https://github.com/mapbox/protozero.git && cd /usr/local/src/protozero && mkdir build && cd build && cmake .. && make -j 6 && make install
 
@@ -74,8 +74,8 @@ function install_tools {
 
     echo "Building osm2pgsql"
     cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j 6 && make install
-    echo "Building osmium"
-    cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j 6 && make install
+    echo "Building libosmium standalone library and osmium tool"
+    cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j 6 && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j 6 && make install
 
     # building osmium-tool
     #    git clone https://github.com/osmcode/libosmium.git
