@@ -91,6 +91,8 @@ function install_tools {
     # carto CSS for building our custom OSM DB
     cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
     # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
+    cp /usr/local/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
+    #
     cp /tmp/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
 }
 
@@ -107,6 +109,7 @@ function install_compile_packages {
 
 function load_osm_data {
     # the data should be present in /usr/loca/src/grb workdir
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://download.geofabrik.de/europe/belgium-latest.osm.pbf"
     # make use of the pgsql tablespace setup having the indexes on a second disk, this speeds up import significantly
     #      --tablespace-main-data    tablespace for main tables
     #      --tablespace-main-index   tablespace for main table indexes
@@ -114,8 +117,9 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 4 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d grb_api -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+    /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 4 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d grb_temp -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
 }
+
 function process_source_data {
     # call external script
     chmod +x /tmp/process_source.sh
