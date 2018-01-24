@@ -62,8 +62,14 @@ locale-gen
 # Functions
 function install_tools {
     echo "Going to install our toolbox.."
-    echo "Building GDAL"
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler
+    echo "Building protozero library"
+
+    # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
+    cd /usr/local/src/ && git clone --recursive https://github.com/mapbox/protozero.git && cd /usr/local/src/protozero && mkdir build && cd build && cmake .. && make -j 6 && make install
+
     # we gonna need a few tools , start with GDAL (for ogr)
+    echo "Building GDAL"
     cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 6 && make install && ldconfig
 
     echo "Building osm2pgsql"
