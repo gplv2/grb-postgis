@@ -180,7 +180,6 @@ fi
 if [ $? -eq 0 ]
 then
   echo "Successfully imported processed sources into PGSQL"
-  exit 0
 else
   echo "Could not import merged source files" >&2
   exit 1
