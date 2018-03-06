@@ -223,7 +223,6 @@ cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h grb-db-0
 if [ $? -eq 0 ]
 then
   echo "Successfully created indexes/updates"
-  exit 0
 else
   echo "Could not execute indexing/updates" >&2
   exit 1
@@ -252,7 +251,6 @@ cat /tmp/update.tags.sql | psql -U grb-data grb_api -h grb-db-0
 if [ $? -eq 0 ]
 then
   echo "Successfully Updated/mapped tags to their OSM counterparts"
-  exit 0
 else
   echo "Could not execute deletes/updates" >&2
   exit 1
@@ -286,7 +284,6 @@ grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B
 if [ $? -eq 0 ]
 then
   echo "Successfully imported addresses into DB"
-  exit 0
 else
   echo "Could not address into DB" >&2
   exit 1
