@@ -51,16 +51,17 @@ do
  echo ""
 
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
-
 # GBG
-echo "running sed\n"
+ echo "running sed\n"
 # mapping the entities to the OSM equivalent
-sed -e 's/LBLTYPE/building/g;s/GRB_OIDN/source:geometry:oidn/g;s/GRB_UIDN/source:geometry:uidn/g;s/ENTITEIT/source:geometry:entity/g;s/DATUM_GRB/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g' -i "${filename}.osm"
-sed -e 's/DATUM_LID/source:lidar:date/g;s/H_KWAL/source:lidar:quality/g;s/STRAATNM/addr:streetname/g' -i "${filename}.osm"
+ sed -e 's/LBLTYPE/building/g;s/GRB_OIDN/source:geometry:oidn/g;s/GRB_UIDN/source:geometry:uidn/g;s/ENTITEIT/source:geometry:entity/g;s/DATUM_GRB/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g' -i "${filename}.osm"
+ sed -e 's/DATUM_LID/source:lidar:date/g;s/H_KWAL/source:lidar:quality/g;s/STRAATNM/addr:streetname/g' -i "${filename}.osm"
 #sed -e 's/LBLTYPE/building/g;s/GRB_OIDN/source:geometry:oidn/g;s/GRB_UIDN/source:geometry:uidn/g;s/ENTITEIT/source:geometry:entity/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gbg"/g' -i "${filename}.osm"
 # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
-sed -e 's/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g' -i "${filename}.osm"
-sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+ sed -e 's/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g' -i "${filename}.osm"
+ sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+
+done
 
 if [ $? -eq 0 ]
 then
