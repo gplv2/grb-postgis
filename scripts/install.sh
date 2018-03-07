@@ -577,7 +577,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_compile_packages
    install_tools
 #   process_source_data
-   process_source_data
+   process_3d_source_data
    load_osm_data
 fi
 
