@@ -145,8 +145,8 @@ osmosis  \
 if [ $? -eq 0 ]
 then
     echo "Successfully merged GRB sources"
-    echo "Cleaning up diskspace - removing zip files"
-    cd /usr/local/src/grb && rm -f *.zip
+    #echo "Cleaning up diskspace - removing zip files"
+    #cd /usr/local/src/grb && rm -f *.zip
     echo "Cleaning up diskspace - removing parsed files"
     rm -f Gbg10000B500.osm 
     rm -f Gbg20001B500.osm

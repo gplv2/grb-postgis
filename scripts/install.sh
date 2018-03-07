@@ -100,6 +100,7 @@ function install_tools {
     cp /usr/local/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
     #
     cp /tmp/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
+    cp /tmp/openstreetmap-carto-3d.style /usr/local/src/openstreetmap-carto/
 }
 
 function install_compile_packages {
@@ -135,6 +136,18 @@ function process_source_data {
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
 }
 
+function process_3d_source_data {
+    # call external script
+    chmod +x /tmp/process_3D_source.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_3D_source.sh"
+
+    # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+
+    #su - postgres -c "cat /tmp/alter.ts.sql | psql -U grb-data grb_api -h grb-db-0"
+}
+
+
 function create_db_ini_file {
    echo "user     = ${USER}" > $DB_CREDENTIALS
    echo "database = ${DATA_DB}" >> $DB_CREDENTIALS
@@ -150,6 +163,7 @@ function prepare_source_data {
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datadisk2/out
 
+    echo "downloading GRB extracts (mirror)"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_10000B500.zip"
@@ -158,15 +172,33 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_40000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_70000B500.zip"
 
-    echo "extracting data"
+    echo "downloading GRB 3D extracts (mirror)"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_30000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_20001B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_40000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500.zip"
+
+    echo "extracting GRB data..."
     # unpacking all provinces data
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_30000B500.zip -d GRBgis_30000"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
+    # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
 
-    echo "Done preparing sources"
+    echo "extracting 3D data..."
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500.zip -d 3D_GRB_20001"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_40000B500.zip -d 3D_GRB_40000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500.zip -d 3D_GRB_70000"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500.zip -d 3D_GRB_10000"
+    # 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
+
+    echo "Done extracting and preparing sources"
 }
 
 # Create an aliases file so we can use short commands to navigate a project
@@ -544,6 +576,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    prepare_source_data
    install_compile_packages
    install_tools
+#   process_source_data
    process_source_data
    load_osm_data
 fi
