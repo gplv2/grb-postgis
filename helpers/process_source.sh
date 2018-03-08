@@ -207,13 +207,13 @@ echo "UPDATE planet_osm_polygon set highway='steps', building='' where building=
 echo "creating additional indexes..."
 
 cat > /tmp/create.indexes.sql << EOF
-CREATE INDEX idx_planet_osm_line_nobridge ON planet_osm_polygon USING gist (way) WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) WHERE (man_made IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_pop_no_bridge ON planet_osm_polygon USING gist (way) WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_pop_hw_null ON planet_osm_polygon USING gist (way) WHERE (highway IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_pop_no_hw ON planet_osm_polygon USING gist (way) WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_pop_no_b ON planet_osm_polygon USING gist (way) WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) WHERE (building IS NOT NULL) TABLESPACE indexspace;
+CREATE INDEX idx_planet_osm_line_nobridge ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
+CREATE INDEX idx_pop_mm_null ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (man_made IS NOT NULL);
+CREATE INDEX idx_pop_no_bridge ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_pop_hw_null ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (highway IS NOT NULL);
+CREATE INDEX idx_pop_no_hw ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_pop_no_b ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE (building IS NOT NULL);
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
