@@ -183,54 +183,64 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500.zip"
 
-if [ ! -z "$SAVESPACE" ] && [ "${SAVESPACE}" = "no" ]; then
-    echo "extracting GRB data..."
-    # unpacking all provinces data
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_30000B500.zip -d GRBgis_30000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
-    # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
+#if [ ! -z "$SAVESPACE" ] && [ "${SAVESPACE}" = "no" ]; then
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then 
+        # If you are low on diskspace, you can use fuse to mount the zips as device in user space
+        cd /usr/local/src/grb
+        mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000 
+        chown ${DEPLOY_USER}:${DEPLOY_USER} GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000 
+    
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_10000B500.zip GRBgis_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_20001B500.zip GRBgis_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_30000B500.zip GRBgis_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_40000B500.zip GRBgis_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_70000B500.zip GRBgis_70000"
 
-    echo "extracting 3D data..."
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500.zip -d 3D_GRB_20001"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_40000B500.zip -d 3D_GRB_40000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500.zip -d 3D_GRB_70000"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500.zip -d 3D_GRB_10000"
-    # 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
-else
-    # If you are low on diskspace, you can use fuse to mount the zips as device in user space
-    fuse-zip -o /usr/local/src/grb/GRBgis_20171105_10000B500.zip /usr/local/grb/GRBgis_10000
-    fuse-zip -o /usr/local/src/grb/GRBgis_20171105_20001B500.zip /usr/local/grb/GRBgis_20001
-    fuse-zip -o /usr/local/src/grb/GRBgis_20171105_30000B500.zip /usr/local/grb/GRBgis_30000
-    fuse-zip -o /usr/local/src/grb/GRBgis_20171105_40000B500.zip /usr/local/grb/GRBgis_40000
-    fuse-zip -o /usr/local/src/grb/GRBgis_20171105_70000B500.zip /usr/local/grb/GRBgis_70000
+        mkdir 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
+        chown ${DEPLOY_USER}:${DEPLOY_USER} 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
 
-    fusermount -u /usr/local/grb/GRBgis_10000
-    fusermount -u /usr/local/grb/GRBgis_20001
-    fusermount -u /usr/local/grb/GRBgis_30000
-    fusermount -u /usr/local/grb/GRBgis_40000
-    fusermount -u /usr/local/grb/GRBgis_70000
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_04000B500.zip 3D_GRB_04000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_30000B500.zip 3D_GRB_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_20001B500.zip 3D_GRB_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_40000B500.zip 3D_GRB_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_70000B500.zip 3D_GRB_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_10000B500.zip 3D_GRB_10000"
 
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_04000B500.zip /usr/local/grb/src/3D_GRB_04000
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_30000B500.zip /usr/local/grb/src/3D_GRB_30000
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_20001B500.zip /usr/local/grb/src/3D_GRB_20001
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_40000B500.zip /usr/local/grb/src/3D_GRB_40000
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_70000B500.zip /usr/local/grb/src/3D_GRB_70000
-    fuse-zip -o ro /usr/local/src/grb/3D_GRB_10000B500.zip /usr/local/grb/src/3D_GRB_10000
+        # unmounting :
 
-    fusermount -u /usr/local/grb/3D_GRB_04000
-    fusermount -u /usr/local/grb/3D_GRB_30000
-    fusermount -u /usr/local/grb/3D_GRB_20001
-    fusermount -u /usr/local/grb/3D_GRB_40000
-    fusermount -u /usr/local/grb/3D_GRB_70000
-    fusermount -u /usr/local/grb/3D_GRB_10000
+        #fusermount -u /usr/local/grb/GRBgis_10000
+        #fusermount -u /usr/local/grb/GRBgis_20001
+        #fusermount -u /usr/local/grb/GRBgis_30000
+        #fusermount -u /usr/local/grb/GRBgis_40000
+        #fusermount -u /usr/local/grb/GRBgis_70000
 
-fi
-    echo "Done extracting and preparing sources"
+        #fusermount -u /usr/local/grb/3D_GRB_04000
+        #fusermount -u /usr/local/grb/3D_GRB_30000
+        #fusermount -u /usr/local/grb/3D_GRB_20001
+        #fusermount -u /usr/local/grb/3D_GRB_40000
+        #fusermount -u /usr/local/grb/3D_GRB_70000
+        #fusermount -u /usr/local/grb/3D_GRB_10000
+        echo "Done mounting zip sources"
+    else
+        echo "extracting GRB data..."
+        # unpacking all provinces data
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_30000B500.zip -d GRBgis_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
+        # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
+    
+        echo "extracting 3D data..."
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500.zip -d 3D_GRB_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_40000B500.zip -d 3D_GRB_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500.zip -d 3D_GRB_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500.zip -d 3D_GRB_10000"
+        # 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
+        echo "Done extracting and preparing sources"
+    fi
 }
 
 # Create an aliases file so we can use short commands to navigate a project
