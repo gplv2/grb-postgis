@@ -139,13 +139,13 @@ echo "UPDATE lidar_polygon set highway='steps', building='' where building='trap
 echo "creating additional indexes..."
 
 cat > /tmp/create.indexes.sql << EOF
-CREATE INDEX idx_lidar_osm_line_nobridge ON lidar_polygon USING gist (way) WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_lid_mm_null ON lidar_polygon USING gist (way) WHERE (man_made IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_lid_no_bridge ON lidar_polygon USING gist (way) WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_lid_hw_null ON lidar_polygon USING gist (way) WHERE (highway IS NOT NULL) TABLESPACE indexspace;
-CREATE INDEX idx_lid_no_hw ON lidar_polygon USING gist (way) WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_lid_no_b ON lidar_polygon USING gist (way) WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) TABLESPACE indexspace;
-CREATE INDEX idx_lid_b_null ON lidar_polygon USING gist (way) WHERE (building IS NOT NULL) TABLESPACE indexspace;
+CREATE INDEX idx_lidar_osm_line_nobridge ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
+CREATE INDEX idx_lid_mm_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (man_made IS NOT NULL);
+CREATE INDEX idx_lid_no_bridge ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_lid_hw_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (highway IS NOT NULL);
+CREATE INDEX idx_lid_no_hw ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_lid_no_b ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_lid_b_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (building IS NOT NULL);
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
