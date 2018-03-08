@@ -58,7 +58,8 @@ do
  echo "running sed\n"
 # mapping the entities to the OSM equivalent
  sed -e 's/LBLTYPE/building/g;s/GRB_OIDN/source:geometry:oidn/g;s/GRB_UIDN/source:geometry:uidn/g;s/ENTITEIT/source:geometry:entity/g;s/DATUM_GRB/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g' -i "${filename}.osm"
- sed -e 's/DATUM_LID/source:lidar:date/g;s/H_KWAL/source:lidar:quality/g;s/STRAATNM/addr:street/g' -i "${filename}.osm"
+ sed -e 's/DATUM_LID/source:lidar:date/g;s/H_KWAL/source:lidar:quality/g;s/STRAATNMID/STRAAT_NM_ID/g' -i "${filename}.osm"
+ sed -e 's/STRAATNM/addr:street/g' -i "${filename}.osm"
 #sed -e 's/LBLTYPE/building/g;s/GRB_OIDN/source:geometry:oidn/g;s/GRB_UIDN/source:geometry:uidn/g;s/ENTITEIT/source:geometry:entity/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gbg"/g' -i "${filename}.osm"
 # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
  sed -e 's/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g' -i "${filename}.osm"
