@@ -27,6 +27,9 @@ do
  filename="${filename%.*}"
  entity=${filename:0:3} # Gba/Gbg
 
+ # table prefix
+ TABLEPREFIX=lidar
+
  echo $dirname
  echo "Cleanup parsed"
  echo "=============="
@@ -112,7 +115,7 @@ fi
  echo "======"
 
 # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix lidar
+/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
 
 if [ $? -eq 0 ]
 then
@@ -124,28 +127,28 @@ fi
 
 echo "Creating additional indexes..."
 
-echo 'CREATE INDEX lidar_grb_source_index_p ON lidar_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
-echo 'CREATE INDEX lidar_grb_source_ent_p ON lidar_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
 
 # setup source tag for all objects imported
-echo "UPDATE lidar_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h grb-db-0
+echo "UPDATE ${TABLEPREFIX}_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h grb-db-0
 
 # more indexes
-echo 'CREATE INDEX lidar_osm_src_index_p ON lidar_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo "CREATE INDEX ${TABLEPREFIX}_osm_src_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
 
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
-echo "UPDATE lidar_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h grb-db-0
+echo "UPDATE ${TABLEPREFIX}_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h grb-db-0
 
 echo "creating additional indexes..."
 
 cat > /tmp/create.indexes.sql << EOF
-CREATE INDEX idx_lidar_osm_line_nobridge ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
-CREATE INDEX idx_lid_mm_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (man_made IS NOT NULL);
-CREATE INDEX idx_lid_no_bridge ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_lid_hw_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (highway IS NOT NULL);
-CREATE INDEX idx_lid_no_hw ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_lid_no_b ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
-CREATE INDEX idx_lid_b_null ON lidar_polygon USING gist (way) TABLESPACE indexspace WHERE (building IS NOT NULL);
+CREATE INDEX idx_${TABLEPREFIX}_osm_line_nobridge ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
+CREATE INDEX idx_${TABLEPREFIX}_mm_null ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (man_made IS NOT NULL);
+CREATE INDEX idx_${TABLEPREFIX}_no_bridge ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_${TABLEPREFIX}_hw_null ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (highway IS NOT NULL);
+CREATE INDEX idx_${TABLEPREFIX}_no_hw ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (highway <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_${TABLEPREFIX}_no_b ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (building <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
+CREATE INDEX idx_${TABLEPREFIX}_b_null ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (building IS NOT NULL);
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
@@ -162,18 +165,18 @@ fi
 # change tags in DB
 # DELETE FROM planet_osm_polygon WHERE building IN ('garage3','pijler','rooster','zichtbare onderkeldering','cultuur-historisch monument','cabine','garage4','staketsel','gebouw afgezoomd met virtuele gevels','tunnelmond');
 cat > /tmp/update.tags.sql << EOF
-UPDATE planet_osm_polygon SET fixme='verdieping, correct the building tag, add building:level and building:min_level before upload in JOSM!', building='yes' where building='verdieping';
-UPDATE planet_osm_polygon SET building='yes', man_made='water_tower' WHERE building='watertoren';
-UPDATE planet_osm_polygon SET man_made='tower', "tower:type"='cooling' , building='yes' WHERE building='koeltoren';
-UPDATE planet_osm_polygon SET building='',tags=hstore('building:part', 'yes'), foot='designated', layer='1', fixme='This is a walking bridge between buildings, please review and complete all tags, use way osmid 118022697 as example' WHERE building='loopbrug';
-UPDATE planet_osm_polygon SET man_made='chimney', building='', fixme='Add the chimney type and optionally building in case the chimney is part of a building' WHERE building='schoorsteen';
-UPDATE planet_osm_polygon SET man_made='works', building='' , fixme='This installation is chemical in nature, refine where possible by adding a product=* tag' WHERE building='chemische installatie';
-UPDATE planet_osm_polygon SET man_made='pier', building='' , fixme='This is a havendam, which should be a pier, make sure to verify this' WHERE building='havendam';
-UPDATE planet_osm_polygon SET man_made='mast', building='' , fixme='This is a mast , either high voltage powerline or public TV broadcast, refine this with power, tower:type, height tags or/and communication:* namespace tags, see wiki for more' WHERE building='hoogspanningsmast / openbare TV mast';
-UPDATE planet_osm_polygon SET man_made='storage_tank', building='', fixme='Add the silo type and optionally building type, refine this with content=* see wiki for more information' WHERE building='silo, opslagtank';
-UPDATE planet_osm_polygon SET man_made='groyne', building='', fixme='This can be either: golfbreker, strandhoofd of lage havendam' WHERE building='golfbreker, strandhoofd en lage havendam';
-UPDATE planet_osm_polygon SET man_made='bridge', building='' WHERE building='overbrugging';
-UPDATE planet_osm_polygon SET man_made='weir', fixme='Waterbouwkundig constructie: Doublecheck this tag carefully, it can be a weir, lock_gate, dam etc. check the wiki for the waterways key for more information. When in doubt, delete this object', building='' WHERE building='waterbouwkundig constructie';
+UPDATE ${TABLEPREFIX}_polygon SET fixme='verdieping, correct the building tag, add building:level and building:min_level before upload in JOSM!', building='yes' where building='verdieping';
+UPDATE ${TABLEPREFIX}_polygon SET building='yes', man_made='water_tower' WHERE building='watertoren';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='tower', "tower:type"='cooling' , building='yes' WHERE building='koeltoren';
+UPDATE ${TABLEPREFIX}_polygon SET building='',tags=hstore('building:part', 'yes'), foot='designated', layer='1', fixme='This is a walking bridge between buildings, please review and complete all tags, use way osmid 118022697 as example' WHERE building='loopbrug';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='chimney', building='', fixme='Add the chimney type and optionally building in case the chimney is part of a building' WHERE building='schoorsteen';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='works', building='' , fixme='This installation is chemical in nature, refine where possible by adding a product=* tag' WHERE building='chemische installatie';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='pier', building='' , fixme='This is a havendam, which should be a pier, make sure to verify this' WHERE building='havendam';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='mast', building='' , fixme='This is a mast , either high voltage powerline or public TV broadcast, refine this with power, tower:type, height tags or/and communication:* namespace tags, see wiki for more' WHERE building='hoogspanningsmast / openbare TV mast';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='storage_tank', building='', fixme='Add the silo type and optionally building type, refine this with content=* see wiki for more information' WHERE building='silo, opslagtank';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='groyne', building='', fixme='This can be either: golfbreker, strandhoofd of lage havendam' WHERE building='golfbreker, strandhoofd en lage havendam';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='bridge', building='' WHERE building='overbrugging';
+UPDATE ${TABLEPREFIX}_polygon SET man_made='weir', fixme='Waterbouwkundig constructie: Doublecheck this tag carefully, it can be a weir, lock_gate, dam etc. check the wiki for the waterways key for more information. When in doubt, delete this object', building='' WHERE building='waterbouwkundig constructie';
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
