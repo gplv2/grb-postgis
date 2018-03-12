@@ -183,7 +183,6 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500.zip"
 
-#if [ ! -z "$SAVESPACE" ] && [ "${SAVESPACE}" = "no" ]; then
     if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then 
         # If you are low on diskspace, you can use fuse to mount the zips as device in user space
         cd /usr/local/src/grb

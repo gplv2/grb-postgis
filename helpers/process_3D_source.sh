@@ -128,6 +128,7 @@ fi
 
 echo "Creating additional indexes..."
 
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h grb-db-0
 

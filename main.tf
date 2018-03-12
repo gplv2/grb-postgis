@@ -38,7 +38,7 @@ resource "google_compute_instance" "db" {
   tags = ["db-node"]
   disk {
     image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
-    size = 100
+    size = 80
   }
 
   disk {
