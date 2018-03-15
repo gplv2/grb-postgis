@@ -447,7 +447,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
     # set permissions
     if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
-        echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+        #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+        echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
     fi
 
     echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})"
