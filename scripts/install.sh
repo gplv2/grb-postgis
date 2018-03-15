@@ -167,7 +167,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+    /usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
 }
 
 function process_source_data {
@@ -298,9 +298,9 @@ function prepare_source_data {
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "Setting up bash aliases : psqlc home"
-    # the db alias : psql -h grb-db-0 -d grb-temp -U grb-data
+    # the db alias : psql -h 127.0.0.1 -d grb-temp -U grb-data
 cat > /root/.bash_aliases << EOF
-alias psqlc='psql -h grb-db-0 -d ${DATA_DB} -U ${USER}'
+alias psqlc='psql -h 127.0.0.1 -d ${DATA_DB} -U ${USER}'
 alias home='cd ${PROJECT_DIRECTORY}'
 EOF
 }

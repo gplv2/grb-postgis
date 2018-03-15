@@ -175,7 +175,7 @@ fi
  echo "======"
 
 # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
 
 if [ $? -eq 0 ]
 then
@@ -187,8 +187,8 @@ fi
 
 echo "Creating additional indexes..."
 
-echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
-echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h 127.0.0.1
+echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h 127.0.0.1
 #echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
 #echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
 #echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
@@ -196,13 +196,13 @@ echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("s
 #echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
 
 # setup source tag for all objects imported
-echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h grb-db-0
+echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h 127.0.0.1
 
 # more indexes
-echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h 127.0.0.1
 
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
-echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h grb-db-0
+echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h 127.0.0.1
 
 echo "creating additional indexes..."
 
@@ -217,7 +217,7 @@ CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) TABLESPACE in
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h grb-db-0
+cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
@@ -245,7 +245,7 @@ UPDATE planet_osm_polygon SET man_made='weir', fixme='Waterbouwkundig constructi
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/update.tags.sql | psql -U grb-data grb_api -h grb-db-0
+cat /tmp/update.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
