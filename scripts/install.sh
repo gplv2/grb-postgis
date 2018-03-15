@@ -43,8 +43,8 @@ DEBIAN_FRONTEND=noninteractive
 # use fuse mount to save unzip space
 SAVESPACE=yes
 
-export DEBIAN_FRONTEND=$DEBIAN_FRONTEND 
-export RESOURCE_INDEX=$RESOURCE_INDEX 
+export DEBIAN_FRONTEND=$DEBIAN_FRONTEND
+export RESOURCE_INDEX=$RESOURCE_INDEX
 export IP=$IP
 
 echo "Silencing dpkg fancy stuff"
@@ -221,12 +221,12 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500.zip"
 
-    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then 
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
         # If you are low on diskspace, you can use fuse to mount the zips as device in user space
         cd /usr/local/src/grb
-        mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000 
-        chown ${DEPLOY_USER}:${DEPLOY_USER} GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000 
-    
+        mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
+        chown ${DEPLOY_USER}:${DEPLOY_USER} GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
+
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_10000B500.zip GRBgis_10000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_20001B500.zip GRBgis_20001"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_30000B500.zip GRBgis_30000"
@@ -267,7 +267,7 @@ function prepare_source_data {
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
         # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
-    
+
         echo "extracting 3D data..."
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
@@ -381,7 +381,7 @@ fi
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
         echo "Install $DISTRIB_RELEASE packages ..."
-        DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis 
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis
 
         touch /home/${DEPLOY_USER}/.hushlogin
         chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
@@ -408,7 +408,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
 
     # enable listen
-    if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then 
+    if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then
         echo "Enable listening on all interfaces"
         sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
         echo "Configuring shared buffers"
@@ -419,7 +419,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
             echo "Error:  cannot determine page size"
         else
             shmall=`expr $phys_pages / 2`
-            shmmax=`expr $shmall \* $page_size` 
+            shmmax=`expr $shmall \* $page_size`
             echo "Maximum shared segment size in bytes: ${shmmax}"
             # converting this to a safe GB value for postgres
             postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
@@ -446,19 +446,24 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         SUBNET="10.0.1.0/24"
     fi
     # set permissions
-    if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then 
+    if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
         echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
     fi
 
-    echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})" 
+    echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})"
 
     echo "(re)Start postgres db ..."
     # service postgresql restart # Gives no output, so take old school one
     /etc/init.d/postgresql restart
 
+    # install my .psqlrc file
+    cp /tmp/rcfiles/psqlrc /var/lib/postgresql/.psqlrc
+
     # create 2 tablespaces for index and for data
     mkdir /datadisk1/pg_db /datadisk2/pg_in
-    chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in
+
+    # change the ownership of the new files
+    chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in /var/lib/postgresql/.psqlrc
 
 cat > /tmp/install.tablespaces.sql << EOF
 CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
@@ -482,7 +487,7 @@ EOF
         su - postgres -c "createuser $USER"
         su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
     fi
-    
+
     # create additional DB for alternative datatest
     if [ "${RES_ARRAY[1]}" = "db" ]; then
         echo "Creating 2nd GIS db"
@@ -504,7 +509,7 @@ EOF
     echo "Installing POSTGIS extentions..."
 
 cat > /tmp/install.postgis.sql << EOF
-CREATE EXTENSION postgis; 
+CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
 CREATE EXTENSION hstore;
 EOF
@@ -531,12 +536,12 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     create_db_ini_file
     echo "Installing SSH deployment keys"
 
-    if [ ! -d "/root/.ssh" ]; then 
+    if [ ! -d "/root/.ssh" ]; then
         mkdir /root/.ssh
     fi
 
     PERMS=$(stat -c "%a" /root/.ssh)
-    if [ ! "${PERMS}" = "0700" ]; then 
+    if [ ! "${PERMS}" = "0700" ]; then
         chmod 0700 /root/.ssh
     fi
 
@@ -577,7 +582,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         fi
     fi
 
-    ## Copy all deployment keys priv/public to the deploy user ssh dir 
+    ## Copy all deployment keys priv/public to the deploy user ssh dir
     if [ -d "/root/.ssh" ]; then
         if [ -r "/root/.ssh/config" ]; then
     	    cp /root/.ssh/config /home/${DEPLOY_USER}/.ssh/
@@ -592,9 +597,9 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
 
     # Install cron tabs
 
-    # specific server type crontabs 
+    # specific server type crontabs
     # deploy user crontabs (currently for db and core)
-    GROUP=${RES_ARRAY[1]} # = "www" 
+    GROUP=${RES_ARRAY[1]} # = "www"
     if [ -r /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt ]; then
         cat /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt >> /var/spool/cron/crontabs/${DEPLOY_USER}
         chown ${DEPLOY_USER}:crontab /var/spool/cron/crontabs/${DEPLOY_USER}
@@ -609,7 +614,7 @@ fi
 
 # For all machines, install json parser
 cd /usr/local/src && git clone https://github.com/gplv2/JSON.sh json_bash && cd /usr/local/src/json_bash && cp JSON.sh /usr/local/bin/json_parse && chmod +x /usr/local/bin/json_parse
-    
+
 echo "Registering internal host names"
 if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${CLOUD}" = "google" ]; then
     # Complete the hosts file with our internal ip/hostnames
@@ -618,7 +623,7 @@ if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${
     echo "building DSH machine list"
     /usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }' > /etc/dsh/machines.list
     # groups
-fi 
+fi
 
 if [ "${CLOUD}" = "google" ]; then
    echo "Registering all servers with deploy user ssh id/keys"
