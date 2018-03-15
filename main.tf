@@ -111,7 +111,8 @@ resource "google_compute_instance" "db" {
       agent = false
     }
     inline = [
-      "mkdir -p /tmp/terraform"
+      "mkdir -p /tmp/terraform",
+      "mkdir -p /tmp/rcfiles"
     ]
   }
 
