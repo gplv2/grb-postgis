@@ -33,6 +33,7 @@ DB=grb_api
 USER=grb-data
 DEPLOY_USER=glenn
 PGPASS=/home/${DEPLOY_USER}/.pgpass
+PGRC=/home/${DEPLOY_USER}/.psqlrc
 
 # ini file for events/items DB access
 DATA_DB=grb_temp
@@ -198,13 +199,16 @@ function create_db_ini_file {
    echo "password = ${PASSWORD}" >> $DB_CREDENTIALS
 }
 
-function create_pg_pass file {
+function create_pgpass file {
     echo "localhost:5432:${DB}:${USER}:${PASSWORD}" > $PGPASS
     echo "localhost:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
-    chown -R ${DEPLOY_USER}:${DEPLOY_USER} $PGPASS
     chown 0600 $PGPASS
+
+    cp /tmp/rcfiles/psqlrc $PGRC
+
+    chown -R ${DEPLOY_USER}:${DEPLOY_USER} $PGPASS $PGRC
 }
 
 function prepare_source_data {
@@ -548,7 +552,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     create_db_ini_file
 
     echo "Create .pgpass file"
-    create_pg_pass
+    create_pgpass
 
     echo "Installing SSH deployment keys"
 
