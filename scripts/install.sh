@@ -117,6 +117,44 @@ function install_compile_packages {
     # these libraries are needed to compile osm2pgsql from source
 }
 
+function install_mapnik {
+    echo "Installing mapnik"
+    # install mapnik, this needs to be run after installing packages from install_compile_packages function
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libmapnik-dev mapnik-utils python-mapnik
+}
+
+function install_modtile {
+    echo "installing modtile"
+
+    #mkdir /usr/local/src/grb
+    #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
+
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/mapnik && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autobuild.sh && ./configure && make -j 6"
+
+    if [ $? -eq 0 ]
+        then
+        echo "Successfully compiled modtile sources, going to install it"
+        cd /usr/local/src/grb/mapnik && make install && make install-mod_tile
+        ldconfig
+    fi
+}
+
+function install_carto_compiler {
+    echo "installing carto compiler"
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 npm nodejs-legacy fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
+    sudo npm install -g carto
+    carto -v
+}
+
+# /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
+function preprocess_carto {
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml"
+}
+
+function install_shapefiles {
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/openstreetmap-carto && scripts/get-shapefiles.py"
+}
+
 function load_osm_data {
     # the data should be present in /usr/loca/src/grb workdir
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://download.geofabrik.de/europe/belgium-latest.osm.pbf"
@@ -617,9 +655,15 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    prepare_source_data
    install_compile_packages
    install_tools
-#   process_source_data
+#  process_source_data
    process_3d_source_data
    load_osm_data
+# tileserver add-on
+   install_mapnik
+   install_modtile
+   install_carto_compiler
+   preprocess_carto
+   install_shapefiles
 fi
 
 echo "Provisioning done"

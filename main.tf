@@ -150,6 +150,18 @@ resource "google_compute_instance" "db" {
     }
   }
 
+  # all the resource files in /tmp/rcfiles
+  provisioner "file" {
+    source = "rcfiles/"
+    destination = "/tmp/rcfiles/"
+    connection {
+      type = "ssh"
+      user = "root"
+      private_key = "${file("${var.private_key_path}")}"
+      agent = false
+    }
+  }
+
 # Create an empty file under etc to indicate the project this server belongs to
 # Thought about doing this differently in a few ways since this is the only missing
 # Piece of information in order to configure the python script that can call it all.
