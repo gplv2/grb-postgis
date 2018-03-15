@@ -32,6 +32,7 @@ PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
 DB=grb_api
 USER=grb-data
 DEPLOY_USER=glenn
+PGPASS=/home/${DEPLOY_USER}/.pgpass
 
 # ini file for events/items DB access
 DATA_DB=grb_temp
@@ -192,8 +193,18 @@ function process_3d_source_data {
 function create_db_ini_file {
    echo "user     = ${USER}" > $DB_CREDENTIALS
    echo "database = ${DATA_DB}" >> $DB_CREDENTIALS
-   echo "host     = grb-db-0" >> $DB_CREDENTIALS
+   #echo "host     = grb-db-0" >> $DB_CREDENTIALS
+   echo "host     = 127.0.0.1" >> $DB_CREDENTIALS
    echo "password = ${PASSWORD}" >> $DB_CREDENTIALS
+}
+
+function create_pg_pass file {
+    echo "localhost:5432:${DB}:${USER}:${PASSWORD}" > $PGPASS
+    echo "localhost:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
+    echo "127.0.0.1:5432:${DB}:${USER}:${PASSWORD}" >> $PGPASS
+    echo "127.0.0.1:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
+    chown -R ${DEPLOY_USER}:${DEPLOY_USER} $PGPASS
+    chown 0600 $PGPASS
 }
 
 function prepare_source_data {
@@ -535,6 +546,10 @@ DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq -o Dpkg::Options::="--forc
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "Registering worker DB credentials"
     create_db_ini_file
+
+    echo "Create .pgpass file"
+    create_pg_pass
+
     echo "Installing SSH deployment keys"
 
     if [ ! -d "/root/.ssh" ]; then
