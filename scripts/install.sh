@@ -152,11 +152,12 @@ function install_carto_compiler {
 function preprocess_carto {
     echo "preprocess carto mml"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && carto project.mml > /usr/local/src/grb/mapnik.xml"
+    cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
 }
 
 function install_shapefiles {
     echo "install shapefiles"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py -d /usr/local/src/grb/data"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py"
 }
 
 function config_modtile {
