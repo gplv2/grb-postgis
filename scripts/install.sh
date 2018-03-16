@@ -136,7 +136,7 @@ function install_modtile {
     if [ $? -eq 0 ]
         then
         echo "Successfully compiled modtile sources, going to install it"
-        cd /usr/local/src/grb/mapnik && make install && make install-mod_tile
+        cd /usr/local/src/grb/mod_tile && make install && make install-mod_tile
         ldconfig
     fi
 }
