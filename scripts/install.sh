@@ -151,20 +151,20 @@ function install_carto_compiler {
 # /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
 function preprocess_carto {
     echo "preprocess carto mml"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && carto project.mml > /usr/local/src/grb/mapnik.xml"
-    cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
+    cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml
+    #cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
 }
 
 function install_shapefiles {
     echo "install shapefiles"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py"
+    cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
 }
 
 function config_modtile {
     echo "config modtile"
     # /usr/local/src/grb/mod_tile/mod_tile.conf
-    su - ${DEPLOY_USER} -c "cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/sites-available/"
-    su - ${DEPLOY_USER} -c "cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf ."
+    cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/sites-available/
+    cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf .
 }
 function config_renderd {
     cd /etc/apache2/
@@ -714,6 +714,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    preprocess_carto
    install_shapefiles
    config_modtile
+   config_renderd
    load_osm_data
 fi
 
