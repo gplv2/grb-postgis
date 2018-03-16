@@ -37,7 +37,7 @@ do
  rm -Rf "${filename}_parsed"
  echo "OGR FILE INFO"
  echo "============="
- /usr/local/bin/ogrinfo -al -so ${dirname}/${filename}.shp
+ /usr/local/bin/ogrinfo -ro -al -so ${dirname}/${filename}.shp
  echo ""
 
  echo "OGR2OGR"
@@ -57,7 +57,7 @@ do
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
 
 # GBG
- if [ $entity == 'Gbg' ] 
+ if [ $entity == 'Gbg' ]
     then
     echo "running gbg sed\n"
     # mapping the entities to the OSM equivalent
@@ -68,7 +68,7 @@ do
 
 # we problably need to run the second sed for the first line only like this sed -i '1!b;s/test/blah/' file
 # KNW
- if [ $entity == 'Knw' ] 
+ if [ $entity == 'Knw' ]
     then
     echo "running gbg sed\n"
     # mapping the entities to the OSM equivalent
@@ -78,7 +78,7 @@ do
  fi
 
 # GBA
- if [ $entity == 'Gba' ] 
+ if [ $entity == 'Gba' ]
     then
     echo "running gba sed\n"
     # mapping the entities to the OSM equivalent
@@ -148,7 +148,7 @@ then
     #echo "Cleaning up diskspace - removing zip files"
     #cd /usr/local/src/grb && rm -f *.zip
     echo "Cleaning up diskspace - removing parsed files"
-    rm -f Gbg10000B500.osm 
+    rm -f Gbg10000B500.osm
     rm -f Gbg20001B500.osm
     rm -f Gbg30000B500.osm
     rm -f Gbg40000B500.osm
@@ -308,5 +308,5 @@ echo ""
 echo "Flush cache"
 echo "==========="
  # flush redis cache
-echo "flushall" | redis-cli 
+echo "flushall" | redis-cli
 
