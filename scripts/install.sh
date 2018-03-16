@@ -154,7 +154,7 @@ function preprocess_carto {
 }
 
 function install_shapefiles {
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py -d /usr/local/src/grb/data"
 }
 
 function load_osm_data {
