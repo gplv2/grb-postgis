@@ -143,18 +143,18 @@ function install_modtile {
 
 function install_carto_compiler {
     echo "installing carto compiler"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 npm nodejs-legacy fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 npm fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
     sudo npm install -g carto
     carto -v
 }
 
 # /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
 function preprocess_carto {
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && ./carto project.mml > /usr/local/src/grb/mapnik.xml"
 }
 
 function install_shapefiles {
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/openstreetmap-carto && scripts/get-shapefiles.py"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py"
 }
 
 function load_osm_data {
