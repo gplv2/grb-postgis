@@ -131,7 +131,7 @@ function install_modtile {
     #mkdir /usr/local/src/grb
     #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
 
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/mapnik && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autobuild.sh && ./configure && make -j 6"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j 6"
 
     if [ $? -eq 0 ]
         then
