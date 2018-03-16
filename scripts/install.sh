@@ -150,7 +150,7 @@ function install_carto_compiler {
 
 # /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
 function preprocess_carto {
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && ./carto project.mml > /usr/local/src/grb/mapnik.xml"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/openstreetmap-carto && carto project.mml > /usr/local/src/grb/mapnik.xml"
 }
 
 function install_shapefiles {
