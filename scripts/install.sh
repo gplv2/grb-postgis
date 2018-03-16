@@ -143,8 +143,8 @@ function install_modtile {
 
 function install_carto_compiler {
     echo "installing carto compiler"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 npm fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
-    sudo npm install -g carto
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
+    npm install -g carto
     carto -v
 }
 
