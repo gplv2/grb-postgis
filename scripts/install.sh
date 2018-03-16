@@ -204,8 +204,10 @@ function create_pgpass {
     echo "localhost:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
-    chown 0600 $PGPASS
-
+    PERMS=$(stat -c "%a" ${PGPASS})
+    if [ ! "${PERMS}" = "0600" ]; then
+        chmod 0600 ${PGPASS}
+    fi
     cp /tmp/rcfiles/psqlrc $PGRC
 
     chown -R ${DEPLOY_USER}:${DEPLOY_USER} $PGPASS $PGRC
