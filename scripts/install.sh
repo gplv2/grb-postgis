@@ -165,23 +165,18 @@ function config_modtile {
     su - ${DEPLOY_USER} -c "cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/sites-available/"
     su - ${DEPLOY_USER} -c "cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf ."
 }
-
 function config_renderd {
-    echo "configure renderd" 
-    # the data should be present in /usr/loca/src/grb workdir
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://download.geofabrik.de/europe/belgium-latest.osm.pbf"
-    # make use of the pgsql tablespace setup having the indexes on a second disk, this speeds up import significantly
-    #      --tablespace-main-data    tablespace for main tables
-    #      --tablespace-main-index   tablespace for main table indexes
-    #      --tablespace-slim-data    tablespace for slim mode tables
-    #      --tablespace-slim-index   tablespace for slim mode indexes
+    echo "configure renderd"
+}
 
+function load_osm_data {
+    echo "loading osm data"
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function process_source_data {
-    echo "process source data" 
+    echo "process source data"
     # call external script
     chmod +x /tmp/process_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
@@ -191,7 +186,7 @@ function process_source_data {
 }
 
 function process_3d_source_data {
-    echo "process 3D source data" 
+    echo "process 3D source data"
     # call external script
     chmod +x /tmp/process_3D_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_3D_source.sh"
@@ -204,7 +199,7 @@ function process_3d_source_data {
 
 
 function create_db_ini_file {
-   echo "create DB INI" 
+   echo "create DB INI"
    echo "user     = ${USER}" > $DB_CREDENTIALS
    echo "database = ${DATA_DB}" >> $DB_CREDENTIALS
    #echo "host     = grb-db-0" >> $DB_CREDENTIALS
@@ -213,7 +208,7 @@ function create_db_ini_file {
 }
 
 function create_pgpass {
-   echo "create ${PGPASS}" 
+   echo "create ${PGPASS}"
     echo "localhost:5432:${DB}:${USER}:${PASSWORD}" > $PGPASS
     echo "localhost:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DB}:${USER}:${PASSWORD}" >> $PGPASS
@@ -698,7 +693,6 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    install_tools
 #  process_source_data
    process_3d_source_data
-   load_osm_data
 # tileserver add-on
    install_mapnik
    install_modtile
@@ -706,6 +700,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
    preprocess_carto
    install_shapefiles
    config_modtile
+   load_osm_data
 fi
 
 echo "Provisioning done"
