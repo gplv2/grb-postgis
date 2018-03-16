@@ -176,7 +176,7 @@ function config_renderd {
 
     cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 
-    mkdir /var/lib/mod_tile
+    mkdir /var/lib/mod_tile /var/run/renderd
 
     /etc/init.d/apache2 restart
 }
