@@ -184,8 +184,16 @@ function config_renderd {
 
 function load_osm_data {
     echo "loading osm data"
+    # the data should be present in /usr/loca/src/grb workdir
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://download.geofabrik.de/europe/belgium-latest.osm.pbf"
+    # make use of the pgsql tablespace setup having the indexes on a second disk, this speeds up import significantly
+    #      --tablespace-main-data    tablespace for main tables
+    #      --tablespace-main-index   tablespace for main table indexes
+    #      --tablespace-slim-data    tablespace for slim mode tables
+    #      --tablespace-slim-index   tablespace for slim mode indexes
+
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function process_source_data {
