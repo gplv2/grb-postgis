@@ -166,7 +166,17 @@ function config_modtile {
     su - ${DEPLOY_USER} -c "cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf ."
 }
 function config_renderd {
+    cd /etc/apache2/
     echo "configure renderd"
+    cp /tmp/configs/apache2.conf /etc/apache2/
+    cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
+
+    cp /tmp/configs/000-default.conf /etc/apache2/sites-available/
+    cp /tmp/configs/renderd.conf /usr/local/etc/renderd.conf
+
+    cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
+
+    /etc/init.d/apache2 restart
 }
 
 function load_osm_data {
