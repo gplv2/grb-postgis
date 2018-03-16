@@ -199,7 +199,7 @@ function create_db_ini_file {
    echo "password = ${PASSWORD}" >> $DB_CREDENTIALS
 }
 
-function create_pgpass file {
+function create_pgpass {
     echo "localhost:5432:${DB}:${USER}:${PASSWORD}" > $PGPASS
     echo "localhost:5432:${DATA_DB}:${USER}:${PASSWORD}" >> $PGPASS
     echo "127.0.0.1:5432:${DB}:${USER}:${PASSWORD}" >> $PGPASS
