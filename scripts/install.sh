@@ -163,7 +163,8 @@ function install_shapefiles {
 function config_modtile {
     echo "config modtile"
     # /usr/local/src/grb/mod_tile/mod_tile.conf
-    cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/conf-available/
+    #cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/conf-available/
+    cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
     cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 }
 function config_renderd {
@@ -171,12 +172,11 @@ function config_renderd {
     cd /etc/apache2/
 
     cp /tmp/configs/apache2.conf /etc/apache2/
-    cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
 
     cp /tmp/configs/000-default.conf /etc/apache2/sites-available/
     cp /tmp/configs/renderd.conf /usr/local/etc/renderd.conf
 
-    cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
+    #cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 
     mkdir /var/lib/mod_tile /var/run/renderd
 
