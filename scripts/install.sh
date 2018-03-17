@@ -354,11 +354,11 @@ function install_grb_sources {
 }
 
 function make_grb_dirs {
-    CREATEDIRS=/usr/local/src/grb /datadisk2/out
+    CREATEDIRS="/usr/local/src/grb /datadisk2/out"
 
     for dir in $CREATEDIRS
     do
-        if [! -d "$dir" ]; then
+        if [ ! -d "$dir" ]; then
             mkdir $dir
 
             if [ $? -eq 0 ]
