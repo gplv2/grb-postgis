@@ -163,8 +163,8 @@ function install_shapefiles {
 function config_modtile {
     echo "config modtile"
     # /usr/local/src/grb/mod_tile/mod_tile.conf
-    cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/sites-available/
-    cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf .
+    cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/conf-available/
+    cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 }
 function config_renderd {
     echo "configure renderd"
