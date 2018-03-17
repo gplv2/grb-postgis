@@ -167,8 +167,9 @@ function config_modtile {
     cd /etc/apache2/sites-enabled && ln -s /etc/apache2/sites-available/mod_tile.conf .
 }
 function config_renderd {
-    cd /etc/apache2/
     echo "configure renderd"
+    cd /etc/apache2/
+
     cp /tmp/configs/apache2.conf /etc/apache2/
     cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
 
@@ -246,10 +247,6 @@ function create_pgpass {
 function prepare_source_data {
     # downloading GRB data from private CDN or direct source
     echo "downloading all source data"
-    mkdir /usr/local/src/grb
-    mkdir /datadisk2/out
-    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb
-    chown -R ${DEPLOY_USER}:${DEPLOY_USER} /datadisk2/out
 
     echo "downloading GRB extracts (mirror)"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
@@ -355,6 +352,32 @@ function install_grb_sources {
     #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule init"
     #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
 }
+
+function make_grb_dirs {
+    CREATEDIRS=/usr/local/src/grb /datadisk2/out
+
+    for dir in $CREATEDIRS
+    do
+        if [! -d "$dir" ]; then
+            mkdir $dir
+
+            if [ $? -eq 0 ]
+            then
+                echo "Created directory $dir"
+            else
+                echo "Could not create $dir" >&2
+                exit 1
+            fi
+            chown -R ${DEPLOY_USER}:${DEPLOY_USER} $dir
+        fi
+
+#        PERMS=$(stat -c "%a" $dir)
+#        if [ ! "${PERMS}" = "0700" ]; then
+#            chmod 0700 /root/.ssh
+#        fi
+    done
+}
+
 
 # Generating locales...
 DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
@@ -707,23 +730,24 @@ fi
 
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
-   install_grb_sources
-   create_bash_alias
-   prepare_source_data
-   install_compile_packages
-   install_tools
-#  process_source_data
-#  process_3d_source_data
+    install_grb_sources
+    create_bash_alias
+    make_grb_dirs
+    #prepare_source_data
+    install_compile_packages
+    install_tools
+    #  process_source_data
+    #  process_3d_source_data
 
-# tileserver add-on
-   install_mapnik
-   install_modtile
-   install_carto_compiler
-   preprocess_carto
-   install_shapefiles
-   config_modtile
-   config_renderd
-   load_osm_data
+    # tileserver add-on
+    install_mapnik
+    install_modtile
+    install_carto_compiler
+    preprocess_carto
+    install_shapefiles
+    config_modtile
+    config_renderd
+    load_osm_data
 fi
 
 echo "Provisioning done"
