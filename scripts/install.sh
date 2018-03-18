@@ -185,6 +185,8 @@ function config_renderd {
 
     mkdir /var/lib/mod_tile /var/run/renderd
 
+    chown -R www-data:www-data /var/lib/mod_tile
+
     /etc/init.d/apache2 restart
 
     echo  "installing renderd service"
@@ -196,9 +198,9 @@ function config_renderd {
     sed -i "s/RUNASUSER=renderaccount/RUNASUSER=www-data/" /etc/init.d/renderd
 
     /bin/systemctl enable renderd
-    
+
     echo  "starting renderd service"
-    /etc/init.d/renderd start 
+    /etc/init.d/renderd start
 }
 
 function install_renderd_service {
@@ -219,6 +221,46 @@ function install_nginx_tilecache {
     cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
 
     /etc/init.d/nginx restart
+}
+
+function install_letsencrypt {
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 letsencrypt
+
+    letsencrypt --renew-by-default -a webroot --webroot-path /var/www/html --email glenn@bitless.be --text --agree-tos -d tiles.grbosm.site auth
+}
+
+function enable_ssl {
+
+    echo "Building haproxy ..."
+    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j 6 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
+
+    cd /usr/local/src/ && git clone http://git.haproxy.org/git/haproxy-1.7.git
+
+    cd haproxy-1.7 && make -j 6 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/
+
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 haproxy
+
+    /etc/init.d/haproxy stop
+
+    cp haproxy /usr/sbin/
+
+    echo "haproxy hold" | sudo dpkg --set-selections
+
+    mkdir /etc/haproxy/certs.d
+
+    cp /tmp/configs/haproxy.cfg /etc/haproxy/haproxy.cfg
+
+    echo "Create dhparam file..."
+    /usr/local/ssl/bin/openssl dhparam -dsaparam -out /etc/haproxy/dhparam.pem 4096
+    # Skip this 4096 one for the time being, takes a long time on small servers!
+    # openssl dhparam -dsaparam -out /etc/nginx/dhparam.pem 2048
+
+    cat /etc/letsencrypt/live/tiles.grbosm.site/privkey.pem /etc/letsencrypt/live/tiles.grbosm.site/cert.pem /etc/letsencrypt/live/tiles.grbosm.site/chain.pem /etc/haproxy/dhparam.pem > /etc/haproxy/certs.d/tiles.pem
+
+    # softlink the default cert
+    cd /etc/haproxy/ && ln -s certs.d/tiles.pem default.pem
+
+    /etc/init.d/haproxy start
 }
 
 function load_osm_data {
