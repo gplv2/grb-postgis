@@ -167,6 +167,9 @@ function config_modtile {
     #cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/conf-available/
     cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
     cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
+
+    sed -i "s/Listen 80/Listen 81/" /etc/apache2/ports.conf
+    sed -i "s/Listen 443/#Listen 443 # by provisioner/" /etc/apache2/ports.conf
 }
 
 function config_renderd {
