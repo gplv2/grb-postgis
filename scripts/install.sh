@@ -546,7 +546,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # set permissions
     if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
         #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
-        sed -i "s/host    all             all             127.0.0.1/32            md5/#host    all             all             127.0.0.1/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
+        #sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
+        sed -i "s/host    all             all             127.0.0.1\/32            md5/#host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
         echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
     fi
 
