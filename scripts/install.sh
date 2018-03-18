@@ -203,12 +203,14 @@ function install_renderd_service {
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
 
     /etc/init.d/renderd start
+
+    systemctl daemon-reload
 }
 
 function install_nginx_tilecache {
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
     echo "configuring nginx tile cache service"
-    cp /tmp/configs/upstream.conf /etc/nginx/
+    cp /tmp/configs/upstream.conf /etc/nginx/conf.d/
     cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
 
     /etc/init.d/nginx restart
