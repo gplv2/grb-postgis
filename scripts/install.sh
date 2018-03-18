@@ -202,6 +202,15 @@ function install_renderd_service {
     /etc/init.d/renderd start
 }
 
+function install_nginx_tilecache {
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
+    echo "configuring nginx tile cache service"
+    cp /tmp/configs/upstream.conf /etc/nginx/
+    cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
+
+    /etc/init.d/nginx restart
+}
+
 function load_osm_data {
     echo "loading osm data"
     # the data should be present in /usr/loca/src/grb workdir
@@ -767,6 +776,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_shapefiles
     config_modtile
     config_renderd
+    install_renderd_service
+    install_nginx_tilecache
     load_osm_data
 fi
 
