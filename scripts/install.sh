@@ -226,7 +226,10 @@ function install_nginx_tilecache {
 function install_letsencrypt {
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 letsencrypt
 
-    letsencrypt --renew-by-default -a webroot --webroot-path /var/www/html --email glenn@bitless.be --text --agree-tos -d tiles.grbosm.site auth
+    cd /etc/ && tar -xzvf /tmp/configs/lets.tgz 
+
+    # TEMP DISABLE< ENABLE WHEN DEPLOYING FRESH !
+    #letsencrypt --renew-by-default -a webroot --webroot-path /var/www/html --email glenn@bitless.be --text --agree-tos -d tiles.grbosm.site auth
 }
 
 function enable_ssl {
@@ -831,6 +834,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     config_renderd
     install_renderd_service
     install_nginx_tilecache
+    install_letsencrypt
+    enable_ssl
     load_osm_data
 fi
 
