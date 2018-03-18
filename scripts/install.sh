@@ -151,6 +151,7 @@ function install_carto_compiler {
 # /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
 function preprocess_carto {
     echo "preprocess carto mml"
+    cp /tmp/configs/project.mml /usr/local/src/openstreetmap-carto/
     cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml
     #cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
 }
@@ -167,6 +168,7 @@ function config_modtile {
     cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
     cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 }
+
 function config_renderd {
     echo "configure renderd"
     cd /etc/apache2/
@@ -181,6 +183,23 @@ function config_renderd {
     mkdir /var/lib/mod_tile /var/run/renderd
 
     /etc/init.d/apache2 restart
+
+    echo  "installing renderd service"
+    cp /usr/local/src/grb/mod_tile/debian/renderd.init /etc/init.d/renderd
+    chmod u+x /etc/init.d/renderd
+    cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
+    /bin/systemctl enable renderd
+    echo  "starting renderd service"
+    /etc/init.d/renderd start 
+}
+
+function install_renderd_service {
+    echo "install renderd service"
+    cp /usr/local/src/grb/mod_tile/debian/renderd.init /etc/init.d/renderd
+    chmod u+x /etc/init.d/renderd
+    cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
+
+    /etc/init.d/renderd start
 }
 
 function load_osm_data {
@@ -518,6 +537,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     # set permissions
     if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
         #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+        sed -i "s/host    all             all             127.0.0.1/32            md5/#host    all             all             127.0.0.1/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
         echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
     fi
 
