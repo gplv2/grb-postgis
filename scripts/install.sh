@@ -191,7 +191,12 @@ function config_renderd {
     cp /usr/local/src/grb/mod_tile/debian/renderd.init /etc/init.d/renderd
     chmod u+x /etc/init.d/renderd
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
+
+    # change running user
+    sed -i "s/RUNASUSER=renderaccount/RUNASUSER=www-data/" /etc/init.d/renderd
+
     /bin/systemctl enable renderd
+    
     echo  "starting renderd service"
     /etc/init.d/renderd start 
 }
