@@ -35,7 +35,8 @@ resource "google_compute_instance" "db" {
     on_host_maintenance  = "MIGRATE"
   }
 
-  tags = ["db-node"]
+# "db-node", "www-node","http-server", "https-server"
+  tags = ["db-node", "www-node"]
   disk {
     image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
     size = 80
