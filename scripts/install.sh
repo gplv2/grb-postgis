@@ -190,16 +190,15 @@ function config_renderd {
     /etc/init.d/apache2 restart
 
     echo  "installing renderd service"
+    # change running user
+    sed -i "s/RUNASUSER=renderaccount/RUNASUSER=www-data/" /usr/local/src/grb/mod_tile/debian/renderd.init
     cp /usr/local/src/grb/mod_tile/debian/renderd.init /etc/init.d/renderd
     chmod u+x /etc/init.d/renderd
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
 
-    # change running user
-    sed -i "s/RUNASUSER=renderaccount/RUNASUSER=www-data/" /etc/init.d/renderd
-
     /bin/systemctl enable renderd
 
-    #echo  "starting renderd service"
+    echo  "Installing render list tool"
     #/etc/init.d/renderd start
     su - ${DEPLOY_USER} -c "cd /usr/local/src/ && git clone https://github.com/gplv2/render_list_geo.pl.git render_list"
 }
