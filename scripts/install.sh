@@ -281,6 +281,20 @@ function load_osm_data {
     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
+function create_osm_indexes {
+    echo "Creating data indexes"
+    # now inxdex extra
+    su - postgres -c "cat /tmp/tile_indexes.sql | psql"
+
+    # move those indexes for grb_temp
+    sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
+
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+
+    # restorey
+    sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+}
+
 function process_source_data {
     echo "process source data"
     # call external script
@@ -838,6 +852,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_letsencrypt
     enable_ssl
     load_osm_data
+    create_osm_indexes
 fi
 
 echo "Provisioning done"
