@@ -199,9 +199,9 @@ function config_renderd {
 
     /bin/systemctl enable renderd
 
-    echo  "starting renderd service"
-    /etc/init.d/renderd stop
-    /etc/init.d/renderd start
+    #echo  "starting renderd service"
+    #/etc/init.d/renderd start
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/ && git clone https://github.com/gplv2/render_list_geo.pl.git render_list"
 }
 
 function install_renderd_service {
@@ -210,6 +210,7 @@ function install_renderd_service {
     chmod u+x /etc/init.d/renderd
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
 
+    echo  "starting renderd service"
     /etc/init.d/renderd start
 
     systemctl daemon-reload
