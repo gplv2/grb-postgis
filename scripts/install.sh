@@ -200,6 +200,7 @@ function config_renderd {
     /bin/systemctl enable renderd
 
     echo  "starting renderd service"
+    /etc/init.d/renderd stop
     /etc/init.d/renderd start
 }
 
