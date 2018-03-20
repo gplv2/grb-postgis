@@ -116,6 +116,7 @@ function install_tools {
 }
 
 function install_compile_packages {
+    echo "Install Compile packages ..."
     # we need to prepare a partial tilesever setup so we can load belgium in a postGIS database , there might be some duplicate packages with the rest of this script
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libgeos-dev libgeos++-dev libpq-dev libproj-dev libprotobuf-c0-dev libxml2-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont liblua5.1-dev libgeotiff-epsg fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted python-yaml make cmake g++ libboost-dev libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev libbz2-dev libpq-dev liblua5.2-dev osmctools libprotozero-dev libutfcpp-dev rapidjson-dev pandoc clang-tidy cppcheck iwyu recode
 
@@ -223,8 +224,8 @@ function install_renderd_service {
 }
 
 function install_nginx_tilecache {
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
     echo "configuring nginx tile cache service"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
     cp /tmp/configs/upstream.conf /etc/nginx/conf.d/
     cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
 
@@ -232,12 +233,18 @@ function install_nginx_tilecache {
 }
 
 function install_letsencrypt {
+    echo "Installing letsencrypt ..."
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 letsencrypt
 
     cd /etc/ && tar -xzvf /tmp/configs/lets.tgz 
 
     # TEMP DISABLE< ENABLE WHEN DEPLOYING FRESH !
     #letsencrypt --renew-by-default -a webroot --webroot-path /var/www/html --email glenn@bitless.be --text --agree-tos -d tiles.grbosm.site auth
+}
+
+function install_test_site {
+    echo "Installing test website..."
+    cd /var/www/ && tar -xzvf /tmp/configs/website.tgz 
 }
 
 function enable_ssl {
@@ -285,7 +292,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
@@ -465,6 +472,7 @@ function install_grb_sources {
 }
 
 function make_grb_dirs {
+    echo "creating dirs"
     CREATEDIRS="/usr/local/src/grb /datadisk2/out"
 
     for dir in $CREATEDIRS
