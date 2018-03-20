@@ -101,6 +101,13 @@ function install_tools {
     export PATH=$PATH:/usr/local/bin/ogr2osm
     # carto CSS for building our custom OSM DB
     cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
+
+    # carto for BELGIUM tiles
+    cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
+    cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
+    cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
+
+    
     # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
     cp /usr/local/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
     #
@@ -293,6 +300,12 @@ function create_osm_indexes {
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+}
+
+function transform_srid {
+    echo "Transforming data"
+    # now inxdex extra
+    su - postgres -c "cat /tmp/transform_db.sql | psql -d ${DATA_DB}"
 }
 
 function process_source_data {
@@ -853,6 +866,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     enable_ssl
     load_osm_data
     create_osm_indexes
+    transform_srid
 fi
 
 echo "Provisioning done"

@@ -25,5 +25,10 @@ CREATE INDEX idx_mm ON planet_osm_line ("man_made");
 CREATE INDEX hidx_poi ON public.planet_osm_point USING btree (((tags OPERATOR(public.->) 'addr:unit'::text)));
 CREATE INDEX idx_pp_addr1 ON public.planet_osm_point USING btree ("addr:housenumber") WHERE ("addr:housenumber" IS NOT NULL);
 CREATE INDEX idx_pp_addr2 ON public.planet_osm_point USING btree ("addr:housename") WHERE ("addr:housename" IS NOT NULL);
-CREATE INDEX idx_pp_building ON public.planet_osm_point USING btree (building) WHERE (building IS NOT NULL);
 
+CREATE INDEX idx_pp_building ON public.planet_osm_point USING btree (building) WHERE (building IS NOT NULL);
+CREATE INDEX idx_pol_building ON public.planet_osm_line USING btree (building);
+CREATE INDEX idx_pol_ww ON planet_osm_line ("waterway");
+
+-- move indexes
+ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "grb-data" SET TABLESPACE indexspace;
