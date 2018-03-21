@@ -320,8 +320,11 @@ function create_osm_indexes {
 
     echo "${GREEN}Preparing pre-move data + indexes${RESET}"
     # premove to default to avoid errors
-    MOVE="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
-    su - postgres -c "echo ${MOVE} | psql -qAtX -d ${DATA_DB} > /tmp/alter.pre.ts.sql 2>/dev/null"
+    MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+
+    # create alter list
+    su - postgres -c "psql -qAtX -d ${DATA_DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts.sql 2>/dev/null"
+
     su - postgres -c "cat /tmp/alter.pre.ts.sql | psql -d ${DATA_DB}"
 
     echo "${GREEN}Moving data + indexes to tablespace${RESET}"
