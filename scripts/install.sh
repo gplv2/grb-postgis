@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 # Screen colors using tput
 RED=`tput setaf 1`
