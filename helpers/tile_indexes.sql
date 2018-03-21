@@ -31,4 +31,4 @@ CREATE INDEX idx_pol_building ON public.planet_osm_line USING btree (building);
 CREATE INDEX idx_pol_ww ON planet_osm_line ("waterway");
 
 -- move indexes
-ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "grb-data" SET TABLESPACE indexspace;
+-- ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "grb-data" SET TABLESPACE indexspace;
