@@ -1000,6 +1000,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_renderd_service
     install_nginx_tilecache
     install_letsencrypt
+    install_test_site
     enable_ssl
     load_osm_data
     create_osm_indexes
