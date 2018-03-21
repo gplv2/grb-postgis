@@ -224,7 +224,6 @@ function config_renderd {
     /bin/systemctl enable renderd
 
     echo  "Installing render list tool"
-    #/etc/init.d/renderd start
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && git clone https://github.com/gplv2/render_list_geo.pl.git render_list"
 }
 
@@ -235,7 +234,7 @@ function install_renderd_service {
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
 
     echo  "starting renderd service"
-    /etc/init.d/renderd start
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 
     systemctl daemon-reload
 }
@@ -316,6 +315,8 @@ function create_osm_indexes {
     # now inxdex extra
     su - postgres -c "cat /tmp/tile_indexes.sql | psql -d ${DATA_DB}"
 
+    echo  "Stopping renderd service (close postgres connections)"
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
     # move those indexes for grb_temp
     sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
 
@@ -323,6 +324,8 @@ function create_osm_indexes {
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 }
 
 function transform_srid {
@@ -338,7 +341,9 @@ function process_source_data {
     su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
 
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 }
 
 function process_3d_source_data {
@@ -347,10 +352,10 @@ function process_3d_source_data {
     chmod +x /tmp/process_3D_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_3D_source.sh"
 
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
-
-    #su - postgres -c "cat /tmp/alter.ts.sql | psql -U grb-data grb_api -h grb-db-0"
+    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 }
 
 
@@ -730,7 +735,10 @@ EOF
             fi
             echo "${GREEN}GRANT privileges on tablespaces to $USER ${RESET}"
             su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
+
+            [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
             su - postgres -c "cat /tmp/alter.ts.sql | psql"
+            [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 
             echo "${GREEN}Changing user password ...${RESET}"
             cat > /tmp/install.postcreate.sql << EOF
