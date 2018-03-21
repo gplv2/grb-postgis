@@ -314,12 +314,12 @@ function load_osm_data {
 function create_osm_indexes {
     echo "${GREEN}Creating data indexes${RESET}"
     # now inxdex extra
-    su - postgres -c "cat /tmp/tile_indexes.sql | psql"
+    su - postgres -c "cat /tmp/tile_indexes.sql | psql -d ${DATA_DB}"
 
     # move those indexes for grb_temp
     sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
 
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    su - postgres -c "cat /tmp/alter.ts.sql | psql -d ${DATA_DB}"
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
