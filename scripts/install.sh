@@ -317,10 +317,18 @@ function create_osm_indexes {
 
     echo  "Stopping renderd service (close postgres connections)"
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+
+    echo "${GREEN}Preparing pre-move data + indexes${RESET}"
+    # premove to default to avoid errors
+    MOVE="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+    su - postgres -c "echo ${MOVE} | psql -qAtX -d ${DATA_DB} > /tmp/alter.pre.ts.sql 2>/dev/null"
+    su - postgres -c "cat /tmp/alter.pre.ts.sql | psql -d ${DATA_DB}"
+
+    echo "${GREEN}Moving data + indexes to tablespace${RESET}"
     # move those indexes for grb_temp
     sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
 
-    su - postgres -c "cat /tmp/alter.ts.sql | psql -d ${DATA_DB}"
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
@@ -709,7 +717,6 @@ CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
 GRANT ALL PRIVILEGES ON TABLESPACE dbspace TO "${USER}" WITH GRANT OPTION;
 GRANT ALL PRIVILEGES ON TABLESPACE indexspace TO "${USER}" WITH GRANT OPTION;
 EOF
-
 
             # set default TS
             cat > /tmp/alter.ts.sql << EOF
