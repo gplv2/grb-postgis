@@ -49,9 +49,15 @@ export DEBIAN_FRONTEND=$DEBIAN_FRONTEND
 export RESOURCE_INDEX=$RESOURCE_INDEX
 export IP=$IP
 
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+
+#echo "${RED}red text ${GREEN}green text${RESET}"
+
 # Fix package problems
 function silence_dpkg {
-    echo "Silencing dpkg fancy stuff"
+    echo "${GREEN}Silencing dpkg fancy stuff${RESET}"
     echo 'Dpkg::Progress-Fancy "0";' > /etc/apt/apt.conf.d/01progressbar
 
     echo "Trying to fix locales"
@@ -62,6 +68,7 @@ function silence_dpkg {
 }
 
 function fix_locales {
+    echo "${GREEN}Fix locales${RESET}"
     # fix locales
     locale-gen "en_US.UTF-8"
     locale-gen "nl_BE.UTF-8"
@@ -74,7 +81,7 @@ function fix_locales {
 
 # Functions
 function install_tools {
-    echo "Going to install our toolbox.."
+    echo "${GREEN}Installing tools${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler
 
     echo "Building protozero library"
@@ -123,7 +130,7 @@ function install_tools {
 }
 
 function install_compile_packages {
-    echo "Install Compile packages ..."
+    echo "${GREEN}Installing Compilation tools${RESET}"
     # we need to prepare a partial tilesever setup so we can load belgium in a postGIS database , there might be some duplicate packages with the rest of this script
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libgeos-dev libgeos++-dev libpq-dev libproj-dev libprotobuf-c0-dev libxml2-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont liblua5.1-dev libgeotiff-epsg fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted python-yaml make cmake g++ libboost-dev libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev libbz2-dev libpq-dev liblua5.2-dev osmctools libprotozero-dev libutfcpp-dev rapidjson-dev pandoc clang-tidy cppcheck iwyu recode
 
@@ -135,13 +142,13 @@ function install_compile_packages {
 }
 
 function install_mapnik {
-    echo "Installing mapnik"
+    echo "${GREEN}Installing Mapnik${RESET}"
     # install mapnik, this needs to be run after installing packages from install_compile_packages function
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libmapnik-dev mapnik-utils python-mapnik
 }
 
 function install_modtile {
-    echo "installing modtile"
+    echo "${GREEN}Installing mod_tile${RESET}"
 
     #mkdir /usr/local/src/grb
     #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
@@ -157,7 +164,7 @@ function install_modtile {
 }
 
 function install_carto_compiler {
-    echo "installing carto compiler"
+    echo "${GREEN}installing carto compiler${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
     npm install -g carto
     carto -v
@@ -165,19 +172,19 @@ function install_carto_compiler {
 
 # /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
 function preprocess_carto {
-    echo "preprocess carto mml"
+    echo "${GREEN}Preprocess carto${RESET}"
     cp /tmp/configs/project.mml /usr/local/src/openstreetmap-carto/
     cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml
     #cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
 }
 
 function install_shapefiles {
-    echo "install shapefiles"
+    echo "${GREEN}Installing shapefiles${RESET}"
     cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
 }
 
 function config_modtile {
-    echo "config modtile"
+    echo "${GREEN}Config mod_tile${RESET}"
     # /usr/local/src/grb/mod_tile/mod_tile.conf
     #cp /usr/local/src/grb/mod_tile/mod_tile.conf /etc/apache2/conf-available/
     cp /tmp/configs/mod_tile.conf /etc/apache2/conf-available/mod_tile.conf
@@ -188,7 +195,7 @@ function config_modtile {
 }
 
 function config_renderd {
-    echo "configure renderd"
+    echo "${GREEN}Config renderd${RESET}"
     cd /etc/apache2/
 
     cp /tmp/configs/apache2.conf /etc/apache2/
@@ -219,7 +226,7 @@ function config_renderd {
 }
 
 function install_renderd_service {
-    echo "install renderd service"
+    echo "${GREEN}Installing renderd${RESET}"
     cp /usr/local/src/grb/mod_tile/debian/renderd.init /etc/init.d/renderd
     chmod u+x /etc/init.d/renderd
     cp /usr/local/src/grb/mod_tile/debian/renderd.service /lib/systemd/system/
@@ -231,7 +238,7 @@ function install_renderd_service {
 }
 
 function install_nginx_tilecache {
-    echo "configuring nginx tile cache service"
+    echo "${GREEN}configuring nginx tile cache service${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
     cp /tmp/configs/upstream.conf /etc/nginx/conf.d/
     cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
@@ -240,7 +247,7 @@ function install_nginx_tilecache {
 }
 
 function install_letsencrypt {
-    echo "Installing letsencrypt ..."
+    echo "${GREEN}Installing letsencrypt${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 letsencrypt
 
     cd /etc/ && tar -xzvf /tmp/configs/lets.tgz
@@ -250,13 +257,12 @@ function install_letsencrypt {
 }
 
 function install_test_site {
-    echo "Installing test website..."
+    echo "${GREEN}Installing test website${RESET}"
     cd /var/www/ && tar -xzvf /tmp/configs/website.tgz
 }
 
 function enable_ssl {
-
-    echo "Building haproxy ..."
+    echo "${GREEN}Building haproxy${RESET}"
     curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j 6 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
 
     cd /usr/local/src/ && git clone http://git.haproxy.org/git/haproxy-1.7.git
@@ -289,7 +295,7 @@ function enable_ssl {
 }
 
 function load_osm_data {
-    echo "loading osm data"
+    echo "${GREEN}Loading OSM data${RESET}"
     # the data should be present in /usr/loca/src/grb workdir
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://download.geofabrik.de/europe/belgium-latest.osm.pbf"
     # make use of the pgsql tablespace setup having the indexes on a second disk, this speeds up import significantly
@@ -303,7 +309,7 @@ function load_osm_data {
 }
 
 function create_osm_indexes {
-    echo "Creating data indexes"
+    echo "${GREEN}Creating data indexes${RESET}"
     # now inxdex extra
     su - postgres -c "cat /tmp/tile_indexes.sql | psql"
 
@@ -317,13 +323,13 @@ function create_osm_indexes {
 }
 
 function transform_srid {
-    echo "Transforming data"
+    echo "${GREEN}Transforming data${RESET}"
     # now inxdex extra
     su - postgres -c "cat /tmp/transform_db.sql | psql -d ${DATA_DB}"
 }
 
 function process_source_data {
-    echo "process source data"
+    echo "${GREEN}Process source data${RESET}"
     # call external script
     chmod +x /tmp/process_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
@@ -333,7 +339,7 @@ function process_source_data {
 }
 
 function process_3d_source_data {
-    echo "process 3D source data"
+    echo "${GREEN}Process 3D source data${RESET}"
     # call external script
     chmod +x /tmp/process_3D_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_3D_source.sh"
@@ -346,6 +352,7 @@ function process_3d_source_data {
 
 
 function create_db_ini_file {
+    echo "${GREEN}Checking DB ini${RESET}"
     if [ ! -e "${DB_CREDENTIALS}" ]; then
         echo "create DB INI"
         echo "user     = ${USER}" > $DB_CREDENTIALS
@@ -357,6 +364,7 @@ function create_db_ini_file {
 }
 
 function create_pgpass {
+    echo "${GREEN}Checking pgpass${RESET}"
     if [ ! -e "${PGPASS}" ]; then
         echo "create ${PGPASS}"
         echo "localhost:5432:${DB}:${USER}:${PASSWORD}" > $PGPASS
@@ -374,8 +382,8 @@ function create_pgpass {
 }
 
 function prepare_source_data {
+    echo "${GREEN}Downloading source data${RESET}"
     # downloading GRB data from private CDN or direct source
-    echo "downloading all source data"
 
     echo "downloading GRB extracts (mirror)"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
@@ -455,7 +463,7 @@ function prepare_source_data {
 
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
-    echo "Setting up bash aliases : psqlc home"
+    echo "${GREEN}Setting up bash aliases${RESET}"
     # the db alias : psql -h 127.0.0.1 -d grb-temp -U grb-data
 cat > /root/.bash_aliases << EOF
 alias psqlc='psql -h 127.0.0.1 -d ${DATA_DB} -U ${USER}'
@@ -464,7 +472,7 @@ EOF
 }
 
 function install_grb_sources {
-    echo "Install GRB source code ..."
+    echo "${GREEN}Install GRB sources${RESET}"
     # https://github.com/gplv2/grb2pgsql.git
     # https://github.com/gplv2/grb2osm.git
     # https://github.com/gplv2/grbtool.git
@@ -483,7 +491,7 @@ function install_grb_sources {
 }
 
 function make_grb_dirs {
-    echo "creating dirs"
+    echo "${GREEN}Creating dirs${RESET}"
     CREATEDIRS="/usr/local/src/grb /datadisk2/out"
 
     for dir in $CREATEDIRS
@@ -509,6 +517,7 @@ function make_grb_dirs {
 }
 
 function create_deploy_user {
+    echo "${GREEN}Creating deploy user${RESET}"
     if [ ! -d "/home/${DEPLOY_USER}" ]; then
         # Adding a deploy user
         PASS=YgjwiWbc2UWG.
@@ -517,6 +526,7 @@ function create_deploy_user {
     fi
 }
 
+echo "${GREEN}Sort OS packages out${RESET}"
 DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0
 
 # remove mdadm annoying package with extended wait
@@ -539,7 +549,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--forc
 
 
 if [ ! -e "/etc/projectdata.json" ]; then
-    echo "Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}"
+    echo "${GREEN}Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}${RESET}"
     echo "Install packages ..."
     # Download helper scripts to create a configuration file (for google cloud)
     if [ "${CLOUD}" = "google" ]; then
@@ -562,7 +572,7 @@ if [ ! -e "/etc/projectdata.json" ]; then
 fi
 
 # for all servers
-echo "Install specific packages ..."
+echo "${GREEN}Install specific packages ...${RESET}"
 
 if [ "${RES_ARRAY[1]}" = "www" ]; then
     if [ "$DISTRIB_RELEASE" = "16.04" ]; then
@@ -611,7 +621,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         chmod +x /usr/local/bin/shmsetup.sh
         /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
 
-        echo "Installing postgres DB server ..."
+        echo "${GREEN}Installing postgres DB server ...${RESET}"
         # DISTRIB_RELEASE=16.04
         if [ "$DISTRIB_RELEASE" = "16.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
@@ -748,13 +758,13 @@ DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq -o Dpkg::Options::="--forc
 
 # SSH KEYS Perform this on all nodes that need bitbucket access through deployment keys (currently www, core, cruncher
 if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "Registering worker DB credentials"
+    echo "${GREEN}Registering worker DB credentials${RESET}"
     create_db_ini_file
 
     echo "Create .pgpass file"
     create_pgpass
 
-    echo "Installing SSH deployment keys"
+    echo "${GREEN}Installing SSH deployment keys${RESET}"
 
     if [ ! -d "/root/.ssh" ]; then
         mkdir /root/.ssh
@@ -830,7 +840,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
 
     if [ ! -e "/var/spool/cron/crontabs/${DEPLOY_USER}" ]; then
-        echo "Setting up ${DEPLOY_USER} cron"
+        echo "${GREEN}Setting up ${DEPLOY_USER} cron${RESET}"
         # Install cron tabs
         # specific server type crontabs
         # deploy user crontabs (currently for db and core)
@@ -843,7 +853,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
 
     if [ ! -e "/var/spool/cron/crontabs/root" ]; then
-        echo "Setting up root cron"
+        echo "${GREEN}Setting up root cron${RESET}"
         # One cron for root on all nodes
         cat /tmp/crons/cron_all_root.txt >> /var/spool/cron/crontabs/root
         chown root:crontab /var/spool/cron/crontabs/root
@@ -856,7 +866,7 @@ if [ ! -d "/usr/local/src/json_bash" ]; then
     cd /usr/local/src && git clone https://github.com/gplv2/JSON.sh json_bash && cd /usr/local/src/json_bash && cp JSON.sh /usr/local/bin/json_parse && chmod +x /usr/local/bin/json_parse
 fi
 
-echo "Registering internal host names"
+echo "${GREEN}Registering internal host names${RESET}"
 if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${CLOUD}" = "google" ]; then
     MYNAME=$(/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }')
     if ! cat /etc/hosts | grep -q $MYNAME ; then
@@ -872,7 +882,7 @@ if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${
 fi
 
 if [ "${CLOUD}" = "google" ]; then
-    echo "Registering all servers with deploy user ssh id/keys"
+    echo "${GREEN}Registering all servers with deploy user ssh id/keys${RESET}"
     HOSTS=`/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }'`
 
     if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q 'start autoadded by'; then
@@ -905,13 +915,16 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     /etc/init.d/ssh restart
 fi
 
+echo "${GREEN}Running General functions${RESET}"
 # for all servers
 silence_dpkg
 fix_locales
 create_deploy_user
+echo "${GREEN}Done general section${RESET}"
 
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
+    echo "${GREEN}Running DB functions${RESET}"
     install_grb_sources
     create_bash_alias
     make_grb_dirs
@@ -936,6 +949,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     load_osm_data
     create_osm_indexes
     transform_srid
+    echo "${GREEN}Done database section${RESET}"
 fi
 
-echo "Provisioning done"
+echo "${GREEN}Provisioning done${RESET}"
