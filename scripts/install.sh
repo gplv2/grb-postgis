@@ -1,5 +1,11 @@
 #!/bin/bash -ex
 
+# Screen colors using tput
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+#ex: echo "${RED}red text ${GREEN}green text${RESET}"
+
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
     RESOURCE_INDEX=`hostname`
@@ -8,6 +14,7 @@ fi
 CLOUD=google
 
 echo "${GREEN}Gather metadata${RESET}"
+
 if [ "${CLOUD}" = "google" ]; then
    # Gather metadata for the whole project, especially IP addresses
    IP=$(curl -s -H "Metadata-Flavor:Google" http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip)
@@ -50,13 +57,6 @@ SAVESPACE=yes
 export DEBIAN_FRONTEND=$DEBIAN_FRONTEND
 export RESOURCE_INDEX=$RESOURCE_INDEX
 export IP=$IP
-
-# Screen colors using tput
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
-
-#echo "${RED}red text ${GREEN}green text${RESET}"
 
 # Fix package problems
 function silence_dpkg {
