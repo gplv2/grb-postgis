@@ -7,6 +7,7 @@ fi
 
 CLOUD=google
 
+echo "${GREEN}Gather metadata${RESET}"
 if [ "${CLOUD}" = "google" ]; then
    # Gather metadata for the whole project, especially IP addresses
    IP=$(curl -s -H "Metadata-Flavor:Google" http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip)
@@ -27,6 +28,7 @@ do
     echo "meta: ${element}"
 done
 
+echo "${GREEN}Setting up configuration${RESET}"
 PROJECT_NAME=grbapi
 PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
 DB=grb_api
@@ -49,6 +51,7 @@ export DEBIAN_FRONTEND=$DEBIAN_FRONTEND
 export RESOURCE_INDEX=$RESOURCE_INDEX
 export IP=$IP
 
+# Screen colors using tput
 RED=`tput setaf 1`
 GREEN=`tput setaf 2`
 RESET=`tput sgr0`
@@ -526,171 +529,176 @@ function create_deploy_user {
     fi
 }
 
-echo "${GREEN}Sort OS packages out${RESET}"
-DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0
+function install_os_packages {
+    echo "${GREEN}Sort OS packages out${RESET}"
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0
 
-# remove mdadm annoying package with extended wait
-DEBIAN_FRONTEND=noninteractive apt-get remove -qq -y -o=Dpkg::Use-Pty=0 mdadm
+    # remove mdadm annoying package with extended wait
+    DEBIAN_FRONTEND=noninteractive apt-get remove -qq -y -o=Dpkg::Use-Pty=0 mdadm
 
-DEBIAN_FRONTEND=noninteractive apt-get upgrade -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
-DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
 
-[ -r /etc/lsb-release ] && . /etc/lsb-release
+    [ -r /etc/lsb-release ] && . /etc/lsb-release
 
-if [ -z "$DISTRIB_RELEASE" ] && [ -x /usr/bin/lsb_release ]; then
-    # Fall back to using the very slow lsb_release utility
-    DISTRIB_RELEASE=$(lsb_release -s -r)
-    DISTRIB_CODENAME=$(lsb_release -s -c)
-fi
-
-echo "Preparing for ubuntu %s - %s" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
-
-DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip
-
-
-if [ ! -e "/etc/projectdata.json" ]; then
-    echo "${GREEN}Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}${RESET}"
-    echo "Install packages ..."
-    # Download helper scripts to create a configuration file (for google cloud)
-    if [ "${CLOUD}" = "google" ]; then
-        cd /usr/local/etc/
-        wget --quiet https://raw.githubusercontent.com/gplv2/ansible/devel/contrib/inventory/gce.ini
-
-        cd /usr/local/bin/
-        wget --quiet https://raw.githubusercontent.com/gplv2/ansible/devel/contrib/inventory/gce.py
-        chmod +x /usr/local/bin/gce.py
-
-        # replace project id, ex: gce_project_id = api-project-37604919139
-        sed -i "s/gce_project_id = /gce_project_id = ${MY_PROJECT}/" $GCE_INI_PATH
-        # gce_project_id =
-
-        # Now run the script and pipe through a prettyfier so we can read it
-        # We are making an exception here and store this in /etc as it is static and system wide, set once
-        /usr/local/bin/gce.py --list | aeson-pretty > /etc/projectdata.json
-        # Now the project information is available and you can find out the other nodes (using tags for example)
+    if [ -z "$DISTRIB_RELEASE" ] && [ -x /usr/bin/lsb_release ]; then
+        # Fall back to using the very slow lsb_release utility
+        DISTRIB_RELEASE=$(lsb_release -s -r)
+        DISTRIB_CODENAME=$(lsb_release -s -c)
     fi
-fi
 
-# for all servers
-echo "${GREEN}Install specific packages ...${RESET}"
+    echo "Preparing for ubuntu %s - %s" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
 
-if [ "${RES_ARRAY[1]}" = "www" ]; then
-    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
-        echo "Install $DISTRIB_RELEASE packages ..."
-        DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip
 
-        if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
-            touch /home/${DEPLOY_USER}/.hushlogin
-            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
+
+    if [ ! -e "/etc/projectdata.json" ]; then
+        echo "${GREEN}Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}${RESET}"
+        echo "Install packages ..."
+        # Download helper scripts to create a configuration file (for google cloud)
+        if [ "${CLOUD}" = "google" ]; then
+            cd /usr/local/etc/
+            wget --quiet https://raw.githubusercontent.com/gplv2/ansible/devel/contrib/inventory/gce.ini
+
+            cd /usr/local/bin/
+            wget --quiet https://raw.githubusercontent.com/gplv2/ansible/devel/contrib/inventory/gce.py
+            chmod +x /usr/local/bin/gce.py
+
+            # replace project id, ex: gce_project_id = api-project-37604919139
+            sed -i "s/gce_project_id = /gce_project_id = ${MY_PROJECT}/" $GCE_INI_PATH
+            # gce_project_id =
+
+            # Now run the script and pipe through a prettyfier so we can read it
+            # We are making an exception here and store this in /etc as it is static and system wide, set once
+            /usr/local/bin/gce.py --list | aeson-pretty > /etc/projectdata.json
+            # Now the project information is available and you can find out the other nodes (using tags for example)
         fi
     fi
+}
 
-    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
-        if [ ! -e "/usr/local/bin/composer" ]; then
-            echo "Updating global Composer ..."
-            curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-        fi
-    fi
-fi
+function install_selected_packages {
+    # for all servers
+    echo "${GREEN}Install specific packages ...${RESET}"
 
-
-if [ "${RES_ARRAY[1]}" = "db" ]; then
-    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
-        echo "Install $DISTRIB_RELEASE packages ..."
-        DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis
-
-        if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
-            touch /home/${DEPLOY_USER}/.hushlogin
-            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
-        fi
-    fi
-
-    if [ "$DISTRIB_RELEASE" = "16.04" ]; then
-        if [ ! -e "/usr/local/bin/composer" ]; then
-            echo "Updating global Composer ..."
-            curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-        fi
-    fi
-fi
-
-# DB server
-if [ "${RES_ARRAY[1]}" = "db" ]; then
-    # test for postgres install
-    if [ $(dpkg-query -W -f='${Status}' postgresql 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
-        echo "Setting up shared mem"
-        chmod +x /usr/local/bin/shmsetup.sh
-        /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
-
-        echo "${GREEN}Installing postgres DB server ...${RESET}"
-        # DISTRIB_RELEASE=16.04
+    if [ "${RES_ARRAY[1]}" = "www" ]; then
         if [ "$DISTRIB_RELEASE" = "16.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
-            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
-            DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
-        fi
+            DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify
 
-        # enable listen
-        if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then
-            echo "Enable listening on all interfaces"
-            sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
-            echo "Configuring shared buffers"
-            page_size=`getconf PAGE_SIZE`
-            phys_pages=`getconf _PHYS_PAGES`
-
-            if [ -z "phys_pages" ]; then
-                echo "Error:  cannot determine page size"
-            else
-                shmall=`expr $phys_pages / 2`
-                shmmax=`expr $shmall \* $page_size`
-                echo "Maximum shared segment size in bytes: ${shmmax}"
-                # converting this to a safe GB value for postgres
-                postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
-                echo "Postgres shared buffer size in GB: ${postgres_shared}"
-                echo "Configuring memory settings"
-                sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#work_mem = 4MB/work_mem = 256MB/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 1024MB/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#fsync = on/fsync = on/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#temp_buffers = 8MB/temp_buffers = 16MB/" /etc/postgresql/9.5/main/postgresql.conf
-                echo "Configuring checkpoint settings"
-                sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/#checkpoint_completion_target = 0.5/checkpoint_completion_target = 0.7/" /etc/postgresql/9.5/main/postgresql.conf
+            if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
+                touch /home/${DEPLOY_USER}/.hushlogin
+                chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
             fi
-            echo "Done with changing postgresql settings, we need to restart postgres for them to take effect"
         fi
 
-        # set network
-        if [ "${CLOUD}" = "google" ]; then
-            SUBNET=`gcloud compute networks subnets list | grep europe-west1 | awk '{ print $4 }'`
-        else
-            SUBNET="10.0.1.0/24"
+        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+            if [ ! -e "/usr/local/bin/composer" ]; then
+                echo "Updating global Composer ..."
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            fi
         fi
-        # set permissions
-        if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
-            #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
-            #sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
-            sed -i "s/host    all             all             127.0.0.1\/32            md5/#host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
-            echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+    fi
+
+
+    if [ "${RES_ARRAY[1]}" = "db" ]; then
+        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+            echo "Install $DISTRIB_RELEASE packages ..."
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.0 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis
+
+            if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
+                touch /home/${DEPLOY_USER}/.hushlogin
+                chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.hushlogin
+            fi
         fi
 
-        echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})"
+        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+            if [ ! -e "/usr/local/bin/composer" ]; then
+                echo "Updating global Composer ..."
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+            fi
+        fi
+    fi
+}
 
-        echo "(re)Start postgres db ..."
-        # service postgresql restart # Gives no output, so take old school one
-        /etc/init.d/postgresql restart
+function install_configure_postgres {
+    # DB server
+    if [ "${RES_ARRAY[1]}" = "db" ]; then
+        # test for postgres install
+        if [ $(dpkg-query -W -f='${Status}' postgresql 2>/dev/null | grep -c "ok installed") -eq 0 ]; then
+            echo "Setting up shared mem"
+            chmod +x /usr/local/bin/shmsetup.sh
+            /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
 
-        # install my .psqlrc file
-        cp /tmp/rcfiles/psqlrc /var/lib/postgresql/.psqlrc
+            echo "${GREEN}Installing postgres DB server ...${RESET}"
+            # DISTRIB_RELEASE=16.04
+            if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+                echo "Install $DISTRIB_RELEASE packages ..."
+                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
+                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
+            fi
 
-        # create 2 tablespaces for index and for data
-        mkdir /datadisk1/pg_db /datadisk2/pg_in
+            # enable listen
+            if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then
+                echo "Enable listening on all interfaces"
+                sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
+                echo "Configuring shared buffers"
+                page_size=`getconf PAGE_SIZE`
+                phys_pages=`getconf _PHYS_PAGES`
 
-        # change the ownership of the new files
-        chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in /var/lib/postgresql/.psqlrc
+                if [ -z "phys_pages" ]; then
+                    echo "Error:  cannot determine page size"
+                else
+                    shmall=`expr $phys_pages / 2`
+                    shmmax=`expr $shmall \* $page_size`
+                    echo "Maximum shared segment size in bytes: ${shmmax}"
+                    # converting this to a safe GB value for postgres
+                    postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
+                    echo "Postgres shared buffer size in GB: ${postgres_shared}"
+                    echo "Configuring memory settings"
+                    sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#work_mem = 4MB/work_mem = 256MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 1024MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#fsync = on/fsync = on/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#temp_buffers = 8MB/temp_buffers = 16MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    echo "Configuring checkpoint settings"
+                    sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#checkpoint_completion_target = 0.5/checkpoint_completion_target = 0.7/" /etc/postgresql/9.5/main/postgresql.conf
+                fi
+                echo "Done with changing postgresql settings, we need to restart postgres for them to take effect"
+            fi
 
-        cat > /tmp/install.tablespaces.sql << EOF
+            # set network
+            if [ "${CLOUD}" = "google" ]; then
+                SUBNET=`gcloud compute networks subnets list | grep europe-west1 | awk '{ print $4 }'`
+            else
+                SUBNET="10.0.1.0/24"
+            fi
+            # set permissions
+            if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
+                #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+                #sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
+                sed -i "s/host    all             all             127.0.0.1\/32            md5/#host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
+                echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+            fi
+
+            echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})"
+
+            echo "(re)Start postgres db ..."
+            # service postgresql restart # Gives no output, so take old school one
+            /etc/init.d/postgresql restart
+
+            # install my .psqlrc file
+            cp /tmp/rcfiles/psqlrc /var/lib/postgresql/.psqlrc
+
+            # create 2 tablespaces for index and for data
+            mkdir /datadisk1/pg_db /datadisk2/pg_in
+
+            # change the ownership of the new files
+            chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in /var/lib/postgresql/.psqlrc
+
+            cat > /tmp/install.tablespaces.sql << EOF
 CREATE TABLESPACE dbspace LOCATION '/datadisk1/pg_db';
 CREATE TABLESPACE indexspace LOCATION '/datadisk2/pg_in';
 GRANT ALL PRIVILEGES ON TABLESPACE dbspace TO "${USER}" WITH GRANT OPTION;
@@ -698,233 +706,262 @@ GRANT ALL PRIVILEGES ON TABLESPACE indexspace TO "${USER}" WITH GRANT OPTION;
 EOF
 
 
-        # set default TS
-        cat > /tmp/alter.ts.sql << EOF
+            # set default TS
+            cat > /tmp/alter.ts.sql << EOF
 ALTER DATABASE ${DB} SET TABLESPACE dbspace;
 ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
 ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
 EOF
 
-        echo "Preparing Database ... $DB / $USER "
-        # su postgres -c "dropdb $DB --if-exists"
+            echo "${GREEN}Preparing Database ... $DB / $USER ${RESET}"
+            # su postgres -c "dropdb $DB --if-exists"
 
-        if ! su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
-            su - postgres -c "createuser $USER"
-            su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
-        fi
-
-        # create additional DB for alternative datatest
-        if [ "${RES_ARRAY[1]}" = "db" ]; then
-            echo "Creating 2nd GIS db"
-            if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
-                su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
+            if ! su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
+                su - postgres -c "createuser $USER"
+                su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
             fi
-        fi
-        echo "GRANT privileges on tablespaces to $USER"
-        su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
-        su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
-        echo "Changing user password ..."
-cat > /tmp/install.postcreate.sql << EOF
+            # create additional DB for alternative datatest
+            if [ "${RES_ARRAY[1]}" = "db" ]; then
+                echo "${GREEN}Creating 2nd GIS db${RESET}"
+                if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
+                    su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
+                fi
+            fi
+            echo "${GREEN}GRANT privileges on tablespaces to $USER ${RESET}"
+            su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
+            su - postgres -c "cat /tmp/alter.ts.sql | psql"
+
+            echo "${GREEN}Changing user password ...${RESET}"
+            cat > /tmp/install.postcreate.sql << EOF
 ALTER USER "$USER" WITH PASSWORD '${PASSWORD}';
 EOF
 
-        su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
+            su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
 
-        echo "Installing POSTGIS extentions..."
+            echo "Installing POSTGIS extentions..."
 
-        cat > /tmp/install.postgis.sql << EOF
+            cat > /tmp/install.postgis.sql << EOF
 CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
 CREATE EXTENSION hstore;
 EOF
 
-        if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
-            su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
+            if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
+                su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
+            fi
+
+            if su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
+                su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
+            fi
+
+            # deliver the database (no tables)
+            #su - postgres -c "cat /tmp/database.sql | psql"
+        fi
+    fi
+}
+
+function update_noninteractive {
+    # Update noninteractive
+    DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -o Dpkg::Use-Pty=0
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -o Dpkg::Use-Pty=0
+}
+
+function configure_credentials {
+    # SSH KEYS Perform this on all nodes that need bitbucket access through deployment keys
+    if [ "${RES_ARRAY[1]}" = "db" ]; then
+        echo "${GREEN}Registering worker DB credentials${RESET}"
+        create_db_ini_file
+
+        echo "Create .pgpass file"
+        create_pgpass
+
+        echo "${GREEN}Installing SSH deployment keys${RESET}"
+
+        if [ ! -d "/root/.ssh" ]; then
+            mkdir /root/.ssh
         fi
 
-        if su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
-            su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
+        PERMS=$(stat -c "%a" /root/.ssh)
+        if [ ! "${PERMS}" = "0700" ]; then
+            chmod 0700 /root/.ssh
         fi
 
-        # deliver the database (no tables)
-        #su - postgres -c "cat /tmp/database.sql | psql"
-    fi
-fi
+        chmod 600 /root/.ssh/deployment_*rsa
+        chmod 644 /root/.ssh/deployment_*pub
 
-# Update noninteractive
-DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -o Dpkg::Use-Pty=0
-DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -o Dpkg::Use-Pty=0
+        # touch known_hosts
+        touch /root/.ssh/known_hosts
 
-# SSH KEYS Perform this on all nodes that need bitbucket access through deployment keys (currently www, core, cruncher
-if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "${GREEN}Registering worker DB credentials${RESET}"
-    create_db_ini_file
-
-    echo "Create .pgpass file"
-    create_pgpass
-
-    echo "${GREEN}Installing SSH deployment keys${RESET}"
-
-    if [ ! -d "/root/.ssh" ]; then
-        mkdir /root/.ssh
-    fi
-
-    PERMS=$(stat -c "%a" /root/.ssh)
-    if [ ! "${PERMS}" = "0700" ]; then
-        chmod 0700 /root/.ssh
-    fi
-
-    chmod 600 /root/.ssh/deployment_*rsa
-    chmod 644 /root/.ssh/deployment_*pub
-
-    # touch known_hosts
-    touch /root/.ssh/known_hosts
-
-    if ! cat /root/ssh/known_hosts | grep -q "bitbucket"; then
-        # Add bitbuckets/github keys
-        echo "Adding SSH bitbucket host key"
-        ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
-    fi
-
-    if ! cat /root/ssh/known_hosts | grep -q "github"; then
-        echo "Adding SSH github host key"
-        ssh-keyscan github.com >> /root/.ssh/known_hosts
-    fi
-
-    ## Fix DEPLOY_USER ssh Permissions
-    if [ ! -d "/home/${DEPLOY_USER}/.ssh" ]; then
-        echo "Creating user SSH dir if it does not exists"
-        mkdir /home/${DEPLOY_USER}/.ssh
-        chmod 700 /home/${DEPLOY_USER}/.ssh
-        chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh
-    fi
-
-    ## concat the deployment pub keys into authorize
-    if [ -d "/root/.ssh" ]; then
-        # for root
-        if [ ! -e "/root/.ssh/authorized_keys" ]; then
-            [ -r /tmp/configs/authorized.default ] && cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /root/.ssh/authorized_keys
-            [ -r /root/.ssh/authorized_keys ] && chmod 644 /root/.ssh/authorized_keys
+        if ! cat /root/ssh/known_hosts | grep -q "bitbucket"; then
+            # Add bitbuckets/github keys
+            echo "Adding SSH bitbucket host key"
+            ssh-keyscan bitbucket.org >> /root/.ssh/known_hosts
         fi
-        # for user
-        # deploy keys
-        if [ -r "/tmp/configs/authorized.default" ]; then
-            if [ ! -e "/home/${DEPLOY_USER}/.ssh/authorized_keys" ]; then
-                cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
-                # individual user keys (start with user_* )
-                cat /tmp/configs/authorized.default /root/.ssh/user_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
-                chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/authorized_keys
-                chmod 644 /home/${DEPLOY_USER}/.ssh/authorized_keys
+
+        if ! cat /root/ssh/known_hosts | grep -q "github"; then
+            echo "Adding SSH github host key"
+            ssh-keyscan github.com >> /root/.ssh/known_hosts
+        fi
+
+        ## Fix DEPLOY_USER ssh Permissions
+        if [ ! -d "/home/${DEPLOY_USER}/.ssh" ]; then
+            echo "Creating user SSH dir if it does not exists"
+            mkdir /home/${DEPLOY_USER}/.ssh
+            chmod 700 /home/${DEPLOY_USER}/.ssh
+            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh
+        fi
+
+        ## concat the deployment pub keys into authorize
+        if [ -d "/root/.ssh" ]; then
+            # for root
+            if [ ! -e "/root/.ssh/authorized_keys" ]; then
+                [ -r /tmp/configs/authorized.default ] && cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /root/.ssh/authorized_keys
+                [ -r /root/.ssh/authorized_keys ] && chmod 644 /root/.ssh/authorized_keys
+            fi
+            # for user
+            # deploy keys
+            if [ -r "/tmp/configs/authorized.default" ]; then
+                if [ ! -e "/home/${DEPLOY_USER}/.ssh/authorized_keys" ]; then
+                    cat /tmp/configs/authorized.default /root/.ssh/deployment_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
+                    # individual user keys (start with user_* )
+                    cat /tmp/configs/authorized.default /root/.ssh/user_*.pub >> /home/${DEPLOY_USER}/.ssh/authorized_keys
+                    chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/authorized_keys
+                    chmod 644 /home/${DEPLOY_USER}/.ssh/authorized_keys
+                fi
             fi
         fi
-    fi
 
-    ## Copy all deployment keys priv/public to the deploy user ssh dir
-    if [ -d "/root/.ssh" ]; then
-        if [ -r "/root/.ssh/config" ]; then
-            if [ ! -e "/home/${DEPLOY_USER}/.ssh/config" ]; then
-                cp /root/.ssh/config /home/${DEPLOY_USER}/.ssh/
-                cp /root/.ssh/deployment_* /home/${DEPLOY_USER}/.ssh/
-                chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/deployment_*
+        ## Copy all deployment keys priv/public to the deploy user ssh dir
+        if [ -d "/root/.ssh" ]; then
+            if [ -r "/root/.ssh/config" ]; then
+                if [ ! -e "/home/${DEPLOY_USER}/.ssh/config" ]; then
+                    cp /root/.ssh/config /home/${DEPLOY_USER}/.ssh/
+                    cp /root/.ssh/deployment_* /home/${DEPLOY_USER}/.ssh/
+                    chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/deployment_*
+                fi
             fi
         fi
-    fi
-    ## This user will be able to use rsync etc to connect internally.
-    # Add bitbuckets/github keys to deploy user too
-    if ! cat /home/${DEPLOY_USER}/.ssh/known_hosts | grep -q "bitbucket"; then
-        sudo su - $DEPLOY_USER -c "ssh-keyscan bitbucket.org >> /home/${DEPLOY_USER}/.ssh/known_hosts"
-    fi
-    if ! cat /home/${DEPLOY_USER}/.ssh/known_hosts | grep -q "github"; then
-        sudo su - $DEPLOY_USER -c "ssh-keyscan github.com >> /home/${DEPLOY_USER}/.ssh/known_hosts"
-    fi
-
-    if [ ! -e "/var/spool/cron/crontabs/${DEPLOY_USER}" ]; then
-        echo "${GREEN}Setting up ${DEPLOY_USER} cron${RESET}"
-        # Install cron tabs
-        # specific server type crontabs
-        # deploy user crontabs (currently for db and core)
-        GROUP=${RES_ARRAY[1]} # = "www"
-        if [ -r /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt ]; then
-            cat /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt >> /var/spool/cron/crontabs/${DEPLOY_USER}
-            chown ${DEPLOY_USER}:crontab /var/spool/cron/crontabs/${DEPLOY_USER}
-            chmod 0600 /var/spool/cron/crontabs/${DEPLOY_USER}
+        ## This user will be able to use rsync etc to connect internally.
+        # Add bitbuckets/github keys to deploy user too
+        if ! cat /home/${DEPLOY_USER}/.ssh/known_hosts | grep -q "bitbucket"; then
+            sudo su - $DEPLOY_USER -c "ssh-keyscan bitbucket.org >> /home/${DEPLOY_USER}/.ssh/known_hosts"
+        fi
+        if ! cat /home/${DEPLOY_USER}/.ssh/known_hosts | grep -q "github"; then
+            sudo su - $DEPLOY_USER -c "ssh-keyscan github.com >> /home/${DEPLOY_USER}/.ssh/known_hosts"
         fi
     fi
+}
 
-    if [ ! -e "/var/spool/cron/crontabs/root" ]; then
-        echo "${GREEN}Setting up root cron${RESET}"
-        # One cron for root on all nodes
-        cat /tmp/crons/cron_all_root.txt >> /var/spool/cron/crontabs/root
-        chown root:crontab /var/spool/cron/crontabs/root
-        chmod 0600 /var/spool/cron/crontabs/root
+function configure_crontabs {
+    if [ "${RES_ARRAY[1]}" = "db" ]; then
+        if [ ! -e "/var/spool/cron/crontabs/${DEPLOY_USER}" ]; then
+            echo "${GREEN}Setting up ${DEPLOY_USER} cron${RESET}"
+            # Install cron tabs
+            # specific server type crontabs
+            # deploy user crontabs (currently for db and core)
+            GROUP=${RES_ARRAY[1]} # = "www"
+            if [ -r /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt ]; then
+                cat /tmp/crons/cron_${GROUP}_${DEPLOY_USER}.txt >> /var/spool/cron/crontabs/${DEPLOY_USER}
+                chown ${DEPLOY_USER}:crontab /var/spool/cron/crontabs/${DEPLOY_USER}
+                chmod 0600 /var/spool/cron/crontabs/${DEPLOY_USER}
+            fi
+        fi
+
+        if [ ! -e "/var/spool/cron/crontabs/root" ]; then
+            echo "${GREEN}Setting up root cron${RESET}"
+            # One cron for root on all nodes
+            cat /tmp/crons/cron_all_root.txt >> /var/spool/cron/crontabs/root
+            chown root:crontab /var/spool/cron/crontabs/root
+            chmod 0600 /var/spool/cron/crontabs/root
+        fi
     fi
-fi
+    # Restart service(s)
+    /etc/init.d/cron restart
+}
 
-if [ ! -d "/usr/local/src/json_bash" ]; then
-    # For all machines, install json parser
-    cd /usr/local/src && git clone https://github.com/gplv2/JSON.sh json_bash && cd /usr/local/src/json_bash && cp JSON.sh /usr/local/bin/json_parse && chmod +x /usr/local/bin/json_parse
-fi
-
-echo "${GREEN}Registering internal host names${RESET}"
-if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${CLOUD}" = "google" ]; then
-    MYNAME=$(/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }')
-    if ! cat /etc/hosts | grep -q $MYNAME ; then
-        # Complete the hosts file with our internal ip/hostnames
-        /usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $2 " " $1 }' >> /etc/hosts
+function install_json_bash {
+    echo "${GREEN}Install json bash${RESET}"
+    if [ ! -d "/usr/local/src/json_bash" ]; then
+        # For all machines, install json parser
+        cd /usr/local/src && git clone https://github.com/gplv2/JSON.sh json_bash && cd /usr/local/src/json_bash && cp JSON.sh /usr/local/bin/json_parse && chmod +x /usr/local/bin/json_parse
     fi
-    # DSH machine list
-    if ! cat /etc/dsh/machines.list | grep -q $MYNAME ; then
-        echo "building DSH machine list"
-        /usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }' > /etc/dsh/machines.list
+}
+
+function configure_hostnames {
+    echo "${GREEN}Registering internal host names${RESET}"
+    if [ -e /usr/local/bin/json_parse ] && [ -x /usr/local/bin/json_parse ] && [ "${CLOUD}" = "google" ]; then
+        MYNAME=$(/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }')
+        if ! cat /etc/hosts | grep -q $MYNAME ; then
+            # Complete the hosts file with our internal ip/hostnames
+            /usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $2 " " $1 }' >> /etc/hosts
+        fi
+        # DSH machine list
+        if ! cat /etc/dsh/machines.list | grep -q $MYNAME ; then
+            echo "building DSH machine list"
+            /usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }' > /etc/dsh/machines.list
+        fi
+        # groups
     fi
-    # groups
-fi
+}
 
-if [ "${CLOUD}" = "google" ]; then
-    echo "${GREEN}Registering all servers with deploy user ssh id/keys${RESET}"
-    HOSTS=`/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }'`
+function configure_ssh_config {
+    if [ "${CLOUD}" = "google" ]; then
+        echo "${GREEN}Registering all servers with deploy user ssh id/keys${RESET}"
+        HOSTS=`/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }'`
 
-    if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q 'start autoadded by'; then
-        echo "# start autoadded by provisioning" >> /home/${DEPLOY_USER}/.ssh/config
-    fi
+        if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q 'start autoadded by'; then
+            echo "# start autoadded by provisioning" >> /home/${DEPLOY_USER}/.ssh/config
+        fi
 
-    for host in ${HOSTS}
-    do
-        if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q $host ; then
-cat << EOF >> /home/${DEPLOY_USER}/.ssh/config
+        for host in ${HOSTS}
+        do
+            if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q $host ; then
+            cat << EOF >> /home/${DEPLOY_USER}/.ssh/config
 Host $host
   HostName $host
   PreferredAuthentications publickey
   IdentityFile ~/.ssh/deployment_grb_rsa
   StrictHostKeyChecking=no
 EOF
+            fi
+        done
+        if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q 'end autoadded'; then
+            echo "# end autoadded" >> /home/${DEPLOY_USER}/.ssh/config
+            chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/config
         fi
-    done
-    if ! cat /home/${DEPLOY_USER}/.ssh/config| grep -q 'end autoadded'; then
-        echo "# end autoadded" >> /home/${DEPLOY_USER}/.ssh/config
-        chown ${DEPLOY_USER}:${DEPLOY_USER} /home/${DEPLOY_USER}/.ssh/config
     fi
-fi
 
-# Restart service(s)
-/etc/init.d/cron restart
+    if [ "${RES_ARRAY[1]}" = "db" ]; then
+        echo "Restart sshd  ..."
+        /etc/init.d/ssh restart
+    fi
+}
 
-if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "Restart sshd  ..."
-    /etc/init.d/ssh restart
-fi
+echo "${GREEN}Start running general actions${RESET}"
 
-echo "${GREEN}Running General functions${RESET}"
-# for all servers
+# prepare all servers
 silence_dpkg
 fix_locales
 create_deploy_user
-echo "${GREEN}Done general section${RESET}"
 
+# Setup OS and install apps
+install_os_packages
+install_selected_packages
+install_configure_postgres
+update_noninteractive
+
+# configure stuff
+configure_credentials
+configure_crontabs
+install_json_bash
+configure_hostnames
+configure_ssh_config
+
+echo "${GREEN}Done general stuff${RESET}"
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "${GREEN}Running DB functions${RESET}"
+    echo "${GREEN}Running setup..${RESET}"
     install_grb_sources
     create_bash_alias
     make_grb_dirs
