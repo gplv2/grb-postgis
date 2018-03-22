@@ -696,10 +696,9 @@ function install_configure_postgres {
                     echo "Configuring memory settings"
                     sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#work_mem = 4MB/work_mem = 8MB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 1024MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 2048MB/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#max_files_per_process = 1000/max_files_per_process = 10000/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/effective_cache_size/effective_cache_size =  /" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#full_page_writes = on/full_page_writes = off/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#fsync = on/fsync = off/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#synchronous_commit = on/synchronous_commit = off/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#wal_level = minimal/wal_level = minimal/" /etc/postgresql/9.5/main/postgresql.conf
