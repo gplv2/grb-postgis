@@ -83,6 +83,12 @@ function fix_locales {
 }
 
 # Functions
+
+function install_shapefiles {
+    echo "${GREEN}Installing shapefiles${RESET}"
+    cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
+}
+
 function install_tools {
     echo "${GREEN}Installing tools${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler
@@ -122,6 +128,14 @@ function install_tools {
 
     # carto for BELGIUM tiles
     cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
+    
+    # install the shape files 
+    install_shapefiles
+    cd /usr/local/src/be-carto && ln -s /usr/local/src/openstreetmap-carto/data .
+
+    #sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
+    sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
+
     cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
     cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
 
@@ -179,11 +193,6 @@ function preprocess_carto {
     cp /tmp/configs/project.mml /usr/local/src/openstreetmap-carto/
     cd /usr/local/src/openstreetmap-carto && carto project.mml > mapnik.xml
     #cp /usr/local/src/grb/mapnik.xml /usr/local/src/openstreetmap-carto
-}
-
-function install_shapefiles {
-    echo "${GREEN}Installing shapefiles${RESET}"
-    cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
 }
 
 function config_modtile {
@@ -307,7 +316,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style --multi-geometry -d ${DATA_DB} -U grb-data /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style --multi-geometry -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
@@ -483,7 +492,7 @@ function prepare_source_data {
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "${GREEN}Setting up bash aliases${RESET}"
-    # the db alias : psql -h 127.0.0.1 -d grb-temp -U grb-data
+    # the db alias : psql -h 127.0.0.1 -d grb-temp -U ${USER}
 cat > /root/.bash_aliases << EOF
 alias psqlc='psql -h 127.0.0.1 -d ${DATA_DB} -U ${USER}'
 alias home='cd ${PROJECT_DIRECTORY}'
@@ -994,7 +1003,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_mapnik
     install_modtile
     preprocess_carto
-    install_shapefiles
+    #install_shapefiles (called elsewhere)
     config_modtile
     config_renderd
     install_renderd_service
