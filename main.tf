@@ -26,7 +26,8 @@ resource "google_compute_instance" "db" {
   count = 1
 
   name = "grb-db-${count.index}"
-  machine_type = "n1-highmem-4"
+#  machine_type = "n1-highmem-4"
+   machine_type = "custom-6-12800"
   zone = "${var.region_zone}"
  
   scheduling {
