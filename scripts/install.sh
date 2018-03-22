@@ -13,6 +13,7 @@ THREADS=$((${CORES}-1))
 # cache is free / 3
 FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
 CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
+PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
@@ -223,6 +224,8 @@ function config_renderd {
 
     cp /tmp/configs/000-default.conf /etc/apache2/sites-available/
     cp /tmp/configs/renderd.conf /usr/local/etc/renderd.conf
+
+    sed -i -r "s|num_threads=".*"$|num_threads=${THREADS}|" /usr/local/etc/renderd.conf
 
     #cd /etc/apache2/conf-enabled && ln -s /etc/apache2/conf-available/mod_tile.conf .
 
@@ -686,15 +689,21 @@ function install_configure_postgres {
                     shmmax=`expr $shmall \* $page_size`
                     echo "Maximum shared segment size in bytes: ${shmmax}"
                     # converting this to a safe GB value for postgres
+                    sed -i -r "s|#?effective_cache_size =".*"$|effective_cache_size = ${PGEFFECTIVE}MB|" /etc/postgresql/9.5/main/postgresql.conf
+
                     postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
                     echo "Postgres shared buffer size in GB: ${postgres_shared}"
                     echo "Configuring memory settings"
                     sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#work_mem = 4MB/work_mem = 256MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#work_mem = 4MB/work_mem = 8MB/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 1024MB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#fsync = on/fsync = on/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#temp_buffers = 8MB/temp_buffers = 16MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#max_files_per_process = 1000/max_files_per_process = 10000/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/effective_cache_size/effective_cache_size =  /" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#full_page_writes = on/full_page_writes = off/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#fsync = on/fsync = off/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#synchronous_commit = on/synchronous_commit = off/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#wal_level = minimal/wal_level = minimal/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#temp_buffers = 8MB/temp_buffers = 32MB/" /etc/postgresql/9.5/main/postgresql.conf
                     echo "Configuring checkpoint settings"
                     sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/9.5/main/postgresql.conf
                     sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/9.5/main/postgresql.conf
