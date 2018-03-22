@@ -148,7 +148,7 @@ function install_tools {
 function install_compile_packages {
     echo "${GREEN}Installing Compilation tools${RESET}"
     # we need to prepare a partial tilesever setup so we can load belgium in a postGIS database , there might be some duplicate packages with the rest of this script
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libgeos-dev libgeos++-dev libpq-dev libproj-dev libprotobuf-c0-dev libxml2-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont liblua5.1-dev libgeotiff-epsg fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted python-yaml make cmake g++ libboost-dev libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev libbz2-dev libpq-dev liblua5.2-dev osmctools libprotozero-dev libutfcpp-dev rapidjson-dev pandoc clang-tidy cppcheck iwyu recode
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 libboost-all-dev git-core tar gzip unzip wget bzip2 build-essential autoconf libtool libgeos-dev libgeos++-dev libpq-dev libproj-dev libprotobuf-c0-dev libxml2-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont liblua5.1-dev libgeotiff-epsg fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted python-yaml make cmake g++ libboost-dev libboost-system-dev libboost-filesystem-dev libexpat1-dev zlib1g-dev libbz2-dev libpq-dev liblua5.2-dev osmctools libprotozero-dev libutfcpp-dev rapidjson-dev pandoc clang-tidy cppcheck iwyu recode
 
     # postgis is already present, so skip that step, but nodejs is not
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
@@ -974,6 +974,21 @@ function install_gunicorn {
 
     supervisorctl start gunicorn_tilestache
 }
+
+
+function install_node-tileserver {
+    echo "${GREEN}Install node-tileserver${RESET}"
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-geoip libgeoip-dev geoip-database geoip-bin php-gettext python-ply python-imaging python-cairo python-cairosvg librsvg2-2 librsvg2-dev libpango-dev libcairo2-dev libcairomm-1.0-dev libjpeg-turbo8-dev libpangomm-1.4-1 libpangomm-1.4-dev libgif-dev
+    # $ apt-get install nodejs-legacy # see https://stackoverflow.com/questions/21168141/can-not-install-packages-using-node-package-manager-in-ubuntu for the reason
+
+    # install python packages
+    #su - ${DEPLOY_USER} -c "pip install -U TileStache Pillow modestmaps simplejson werkzeug uuid mbutil"
+    cd /usr/local/src/ && git clone --recursive https://github.com/rurseekatze/node-tileserver.git && cd node-tileserver && npm -g install
+
+    # You need MapCSS converter to compile your MapCSS styles to JavaScript. Go to your styles directory and compile all your MapCSS styles in one run (you have to do this after every change of your stylesheets):
+    cd /usr/local/src/node-tileserver && for stylefile in *.mapcss ; do python mapcss_converter.py --mapcss "$stylefile" --icons-path . ; done
+}
+
 
 echo "${GREEN}Start running general actions${RESET}"
 
