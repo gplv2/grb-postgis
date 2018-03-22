@@ -10,6 +10,10 @@ RESET=`tput sgr0`
 CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
 THREADS=$((${CORES}-1))
 
+# cache is free / 3
+FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
+CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
+
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
     RESOURCE_INDEX=`hostname`
@@ -20,24 +24,26 @@ CLOUD=google
 echo "${GREEN}Gather metadata${RESET}"
 
 if [ "${CLOUD}" = "google" ]; then
-   # Gather metadata for the whole project, especially IP addresses
-   IP=$(curl -s -H "Metadata-Flavor:Google" http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip)
+    # Gather metadata for the whole project, especially IP addresses
+    IP=$(curl -s -H "Metadata-Flavor:Google" http://metadata/computeMetadata/v1/instance/network-interfaces/0/ip)
 else
-   IP=$(ifconfig eth0 | awk '/inet addr/ {gsub("addr:", "", $2); print $2}')
+    IP=$(ifconfig eth0 | awk '/inet addr/ {gsub("addr:", "", $2); print $2}')
 fi
 
-# use python inventory script (ansible stuff)
-export GCE_INI_PATH=/usr/local/etc/gce.ini
+if [ "${CLOUD}" = "google" ]; then
+    # use python inventory script (ansible stuff)
+    export GCE_INI_PATH=/usr/local/etc/gce.ini
 
-# get the project we belong to
-MY_PROJECT=$(<"/etc/myproject")
+    # get the project we belong to
+    MY_PROJECT=$(<"/etc/myproject")
 
-IFS='-' read -r -a RES_ARRAY <<< "$RESOURCE_INDEX"
+    IFS='-' read -r -a RES_ARRAY <<< "$RESOURCE_INDEX"
 
-for element in "${RES_ARRAY[@]}"
-do
-    echo "meta: ${element}"
-done
+    for element in "${RES_ARRAY[@]}"
+    do
+        echo "meta: ${element}"
+    done
+fi
 
 echo "${GREEN}Setting up configuration${RESET}"
 PROJECT_NAME=grbapi
@@ -319,7 +325,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
