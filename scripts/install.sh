@@ -85,8 +85,11 @@ function fix_locales {
 # Functions
 
 function install_shapefiles {
+    # install the shape files 
     echo "${GREEN}Installing shapefiles${RESET}"
     cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
+
+    cd /usr/local/src/be-carto && ln -s /usr/local/src/openstreetmap-carto/data .
 }
 
 function install_tools {
@@ -129,10 +132,6 @@ function install_tools {
     # carto for BELGIUM tiles
     cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
     
-    # install the shape files 
-    install_shapefiles
-    cd /usr/local/src/be-carto && ln -s /usr/local/src/openstreetmap-carto/data .
-
     #sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
     sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
 
@@ -1003,7 +1002,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_mapnik
     install_modtile
     preprocess_carto
-    #install_shapefiles (called elsewhere)
+    install_shapefiles
     config_modtile
     config_renderd
     install_renderd_service
