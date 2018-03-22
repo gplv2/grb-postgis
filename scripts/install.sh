@@ -968,6 +968,11 @@ EOF
 function install_gunicorn {
     echo "${GREEN}Install unicor${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 gunicorn python-pip supervisor
+
+    # install python packages
+    su - ${DEPLOY_USER} -c "pip install -U TileStache Pillow modestmaps simplejson werkzeug uuid mbutil"
+
+    supervisorctl start gunicorn_tilestache
 }
 
 echo "${GREEN}Start running general actions${RESET}"
