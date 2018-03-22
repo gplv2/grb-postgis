@@ -1,14 +1,26 @@
-#!/bin/bash
+#!/bin/bash -e
+
+# Screen colors using tput
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+#ex: echo "${RED}red text ${GREEN}green text${RESET}"
+
+# count cores
+CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
+THREADS=$((${CORES}-1))
+
+OGRIDFILE=ogr2osm.id
 
 cd /usr/local/src/grb
 
 # This script has been converted from the beta development site
 
-# We need to keep track of the ogr2osm id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
+# We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
 # default value is zero but the file does need to exists if you use the option
-#echo "15715818" > ogr2osm.id
+#echo "15715818" > OGRIDFILE
 echo "Reset counter $file"
-echo "0" > ogr2osm.id
+echo "0" > ${OGRIDFILE}
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space
 # fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
@@ -49,8 +61,8 @@ do
  echo "OGR2OSM"
  echo "======="
  rm -f "${filename}.osm"
- echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
- /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
+ echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
+ /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
  echo ""
 
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
@@ -116,7 +128,7 @@ fi
  echo "======"
 
 # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --unlogged --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
+/usr/local/bin/osm2pgsql --slim --unlogged --create -l --cache 8000 --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
 
 if [ $? -eq 0 ]
 then
@@ -229,5 +241,5 @@ echo ""
 echo "Flush 3D cache"
 echo "=============="
  # flush redis cache
-echo "flushall" | redis-cli 
+echo "flushall" | redis-cli
 

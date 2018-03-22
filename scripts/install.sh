@@ -6,6 +6,10 @@ GREEN=`tput setaf 2`
 RESET=`tput sgr0`
 #ex: echo "${RED}red text ${GREEN}green text${RESET}"
 
+# count cores
+CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
+THREADS=$((${CORES}-1))
+
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
     RESOURCE_INDEX=`hostname`
@@ -85,7 +89,7 @@ function fix_locales {
 # Functions
 
 function install_shapefiles {
-    # install the shape files 
+    # install the shape files
     echo "${GREEN}Installing shapefiles${RESET}"
     cd /usr/local/src/openstreetmap-carto && scripts/get-shapefiles.py
 
@@ -98,16 +102,16 @@ function install_tools {
 
     echo "Building protozero library"
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
-    cd /usr/local/src/ && git clone --recursive https://github.com/mapbox/protozero.git && cd /usr/local/src/protozero && mkdir build && cd build && cmake .. && make -j 6 && make install
+    cd /usr/local/src/ && git clone --recursive https://github.com/mapbox/protozero.git && cd /usr/local/src/protozero && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
     # we gonna need a few tools , start with GDAL (for ogr)
     echo "Building GDAL"
-    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j 6 && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${CORES} && make install && ldconfig
 
     echo "Building osm2pgsql"
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j 6 && make install
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
     echo "Building libosmium standalone library and osmium tool"
-    cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j 6 && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j 6 && make install
+    cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j ${CORES} && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
     # building osmium-tool
     #    git clone https://github.com/osmcode/libosmium.git
@@ -131,7 +135,7 @@ function install_tools {
 
     # carto for BELGIUM tiles
     cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
-    
+
     #sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
     sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
 
@@ -169,7 +173,7 @@ function install_modtile {
     #mkdir /usr/local/src/grb
     #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
 
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j 6"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j ${CORES}"
 
     if [ $? -eq 0 ]
         then
@@ -273,11 +277,11 @@ function install_test_site {
 
 function enable_ssl {
     echo "${GREEN}Building haproxy${RESET}"
-    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j 6 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
+    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j ${CORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
 
     cd /usr/local/src/ && git clone http://git.haproxy.org/git/haproxy-1.7.git
 
-    cd haproxy-1.7 && make -j 6 TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/
+    cd haproxy-1.7 && make -j ${CORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/
 
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 haproxy
 
@@ -315,7 +319,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --unlogged -G --number-processes 3 --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
