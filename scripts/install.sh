@@ -932,6 +932,7 @@ function configure_hostnames {
 }
 
 function configure_ssh_config {
+    echo "${GREEN}Configure SSH${RESET}"
     if [ "${CLOUD}" = "google" ]; then
         echo "${GREEN}Registering all servers with deploy user ssh id/keys${RESET}"
         HOSTS=`/usr/local/bin/json_parse < /etc/projectdata.json | grep '"gce_private_ip"\]' | sed -e 's/\["_meta","hostvars","//g' | sed -e 's/","gce_private_ip"]//g' | sed -e 's/"//g'| awk '{ print $1 }'`
@@ -962,6 +963,11 @@ EOF
         echo "Restart sshd  ..."
         /etc/init.d/ssh restart
     fi
+}
+
+function install_gunicorn {
+    echo "${GREEN}Install unicor${RESET}"
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 gunicorn python-pip supervisor
 }
 
 echo "${GREEN}Start running general actions${RESET}"
