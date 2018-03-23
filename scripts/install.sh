@@ -997,7 +997,7 @@ function install_gunicorn {
 
 function install_node-tileserver {
     echo "${GREEN}Install node-tileserver${RESET}"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-geoip libgeoip-dev geoip-database geoip-bin php-gettext python-ply python-imaging python-cairo python-cairosvg librsvg2-2 librsvg2-dev libpango-dev libcairo2-dev libcairomm-1.0-dev libjpeg-turbo8-dev libpangomm-1.4-1 libpangomm-1.4-dev libgif-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-geoip libgeoip-dev geoip-database geoip-bin php-gettext python-ply python-imaging python-cairo python-cairosvg librsvg2-2 librsvg2-dev libcairo2-dev libcairomm-1.0-dev libjpeg-turbo8-dev libpangomm-1.4-dev libgif-dev
     # $ apt-get install nodejs-legacy # see https://stackoverflow.com/questions/21168141/can-not-install-packages-using-node-package-manager-in-ubuntu for the reason
 
     # install python packages
