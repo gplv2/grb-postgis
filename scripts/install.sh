@@ -991,7 +991,7 @@ function install_gunicorn {
     # install python packages
     su - ${DEPLOY_USER} -c "pip install -U TileStache Pillow modestmaps simplejson werkzeug uuid mbutil"
 
-    supervisorctl start gunicorn_tilestache
+    #supervisorctl start gunicorn_tilestache # does not work
 }
 
 
@@ -1005,7 +1005,7 @@ function install_node-tileserver {
     cd /usr/local/src/ && git clone --recursive https://github.com/rurseekatze/node-tileserver.git && cd node-tileserver && npm -g install
 
     # You need MapCSS converter to compile your MapCSS styles to JavaScript. Go to your styles directory and compile all your MapCSS styles in one run (you have to do this after every change of your stylesheets):
-    cd /usr/local/src/node-tileserver && for stylefile in *.mapcss ; do python mapcss_converter.py --mapcss "$stylefile" --icons-path . ; done
+    #cd /usr/local/src/node-tileserver && for stylefile in *.mapcss ; do python mapcss_converter.py --mapcss "$stylefile" --icons-path . ; done    # does not work
 }
 
 
