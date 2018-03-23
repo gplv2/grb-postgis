@@ -329,7 +329,7 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -l --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
@@ -364,6 +364,7 @@ function create_osm_indexes {
 function transform_srid {
     echo "${GREEN}Transforming data${RESET}"
     # now inxdex extra
+    # this should not be needed anymore when importing with osm2pgsql -m flag instead of -l
     su - postgres -c "cat /tmp/transform_db.sql | psql -d ${DATA_DB}"
 }
 
@@ -1057,7 +1058,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     enable_ssl
     load_osm_data
     create_osm_indexes
-    transform_srid
+    #transform_srid
     echo "${GREEN}Done database section${RESET}"
 fi
 
