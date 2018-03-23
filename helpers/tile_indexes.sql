@@ -30,5 +30,16 @@ CREATE INDEX idx_pp_building ON public.planet_osm_point USING btree (building) W
 CREATE INDEX idx_pol_building ON public.planet_osm_line USING btree (building);
 CREATE INDEX idx_pol_ww ON planet_osm_line ("waterway");
 
+CREATE INDEX idx_pop_barier on "planet_osm_polygon" ("barrier");
+CREATE INDEX idx_pol_aerialway on "planet_osm_line" ("aerialway");
+CREATE INDEX idx_pol_power on "planet_osm_line" ("power");
+CREATE INDEX idx_pop_leisure on "planet_osm_polygon" ("leisure");
+CREATE INDEX idx_pop_boundary on "planet_osm_polygon" ("boundary");
+CREATE INDEX idx_pop_admin_level on "planet_osm_polygon" ("admin_level");
+CREATE INDEX idx_pop_amenity on "planet_osm_polygon" ("amenity");
+
+CREATE INDEX idx_pol_ref on "planet_osm_line" ("ref");
+
 -- move indexes
 -- ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "grb-data" SET TABLESPACE indexspace;
+-- select 'ALTER INDEX '|| indexname  ||' SET TABLESPACE indexspace;' from pg_indexes WHERE tablename='planet_osm_line';
