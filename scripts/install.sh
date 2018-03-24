@@ -106,7 +106,7 @@ function install_shapefiles {
 
 function install_tools {
     echo "${GREEN}Installing tools${RESET}"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev 
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev
 
     echo "Building protozero library"
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
@@ -114,10 +114,11 @@ function install_tools {
 
     # we gonna need a few tools , start with GDAL (for ogr)
     echo "Building GDAL"
-    cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${DOUBLECORES} && make install && ldconfig
+    #cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${DOUBLECORES} && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz && tar -xzvf gdal-2.2.4.tar.gz && cd gdal-2.4.0 && ./configure && make -j ${CORES} && make install && ldconfig
 
     echo "Building osm2pgsql"
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${DOUBLECORES} && make install
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
     echo "Building libosmium standalone library and osmium tool"
     cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j ${CORES} && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
@@ -181,7 +182,7 @@ function install_modtile {
     #mkdir /usr/local/src/grb
     #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
 
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j ${DOUBLECORES}"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j ${CORES}"
 
     if [ $? -eq 0 ]
         then
@@ -287,7 +288,7 @@ function install_test_site {
 
 function enable_ssl {
     echo "${GREEN}Building haproxy${RESET}"
-    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j ${DOUBLECORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
+    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j ${CORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
 
     cd /usr/local/src/ && git clone http://git.haproxy.org/git/haproxy-1.7.git
 
@@ -327,6 +328,10 @@ function load_osm_data {
     #      --tablespace-main-index   tablespace for main table indexes
     #      --tablespace-slim-data    tablespace for slim mode tables
     #      --tablespace-slim-index   tablespace for slim mode indexes
+
+    # filter out OSM buildings
+    osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/converted.o5m
+    osmfilter /datadisk2/converted.o5m --drop="building=" -o=/datadisk2/filtered.o5m
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
@@ -372,7 +377,7 @@ function process_source_data {
     echo "${GREEN}Process source data${RESET}"
     # call external script
     chmod +x /tmp/process_source.sh
-    su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
+    su - ${DEPLOY_USER} -c "nice /tmp/process_source.sh"
 
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
@@ -1037,11 +1042,11 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_grb_sources
     create_bash_alias
     make_grb_dirs
-    #prepare_source_data
+    prepare_source_data
     install_compile_packages
-    install_carto_compiler
     install_tools
-    #  process_source_data
+    install_carto_compiler
+    process_source_data
     #  process_3d_source_data
 
     # tileserver add-on
