@@ -432,7 +432,7 @@ function prepare_source_data {
     echo "${GREEN}Downloading source data${RESET}"
     # downloading GRB data from private CDN or direct source
 
-    echo "downloading GRB extracts (mirror)"
+    echo "${GREEN}downloading GRB extracts (mirror)${RESET}"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_10000B500.zip"
@@ -441,7 +441,7 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_40000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_70000B500.zip"
 
-    echo "downloading GRB 3D extracts (mirror)"
+    echo "${GREEN}downloading GRB 3D extracts (mirror)${RESET}"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_30000B500.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_20001B500.zip"
@@ -485,9 +485,9 @@ function prepare_source_data {
         #fusermount -u /usr/local/grb/3D_GRB_40000
         #fusermount -u /usr/local/grb/3D_GRB_70000
         #fusermount -u /usr/local/grb/3D_GRB_10000
-        echo "Done mounting zip sources"
+        echo "${GREEN}Done mounting zip sources${RESET}"
     else
-        echo "extracting GRB data..."
+        echo "${GREEN}extracting GRB data...${RESET}"
         # unpacking all provinces data
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
@@ -496,7 +496,7 @@ function prepare_source_data {
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
         # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
 
-        echo "extracting 3D data..."
+        echo "${GREEN}extracting 3D data...${RESET}"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500.zip -d 3D_GRB_20001"
@@ -504,7 +504,7 @@ function prepare_source_data {
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500.zip -d 3D_GRB_70000"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500.zip -d 3D_GRB_10000"
         # 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
-        echo "Done extracting and preparing sources"
+        echo "${GREEN}Done extracting and preparing sources${RESET}"
     fi
 }
 
