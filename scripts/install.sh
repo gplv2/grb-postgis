@@ -115,7 +115,7 @@ function install_tools {
     # we gonna need a few tools , start with GDAL (for ogr)
     echo "Building GDAL"
     #cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${DOUBLECORES} && make install && ldconfig
-    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz && tar -xzvf gdal-2.2.4.tar.gz && cd gdal-2.4.0 && ./configure && make -j ${CORES} && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz && tar -xzvf gdal-2.2.4.tar.gz && cd gdal-2.2.4 && ./configure && make -j ${CORES} && make install && ldconfig
 
     echo "Building osm2pgsql"
     cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
