@@ -380,9 +380,9 @@ function process_source_data {
     su - ${DEPLOY_USER} -c "nice /tmp/process_source.sh"
 
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+    #[ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+    #su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    #[ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 }
 
 function process_3d_source_data {
