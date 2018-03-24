@@ -259,11 +259,15 @@ function install_renderd_service {
     echo  "starting renderd service"
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 
+    sleep 1
+    echo  "Reload"
     systemctl daemon-reload
+    sleep 1
 }
 
 function install_nginx_tilecache {
     echo "${GREEN}configuring nginx tile cache service${RESET}"
+    sleep 1
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 nginx
     cp /tmp/configs/upstream.conf /etc/nginx/conf.d/
     cp /tmp/configs/nginx_default.conf /etc/nginx/sites-available/default
@@ -330,8 +334,8 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # filter out OSM buildings
-    osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/converted.o5m
-    osmfilter /datadisk2/converted.o5m --drop="building=" -o=/datadisk2/filtered.o5m
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/converted.o5m"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmfilter /datadisk2/out/converted.o5m --drop=\"building=\" -o=/usr/local/src/grb/filtered.o5m"
 
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
