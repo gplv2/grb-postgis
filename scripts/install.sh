@@ -115,7 +115,7 @@ function install_tools {
     # we gonna need a few tools , start with GDAL (for ogr)
     echo "Building GDAL"
     #cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${DOUBLECORES} && make install && ldconfig
-    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz && tar -xzvf gdal-2.2.4.tar.gz && cd gdal-2.2.4 && ./configure && make -j ${CORES} && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/2.2.4/gdal-2.2.4.tar.gz && tar -xzvf gdal-2.2.4.tar.gz && cd gdal-2.2.4 && ./configure && make -j ${THREADS} && make install && ldconfig
 
     echo "Building osm2pgsql"
     cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
@@ -742,7 +742,10 @@ function install_configure_postgres {
             cp /tmp/rcfiles/psqlrc /var/lib/postgresql/.psqlrc
 
             # create 2 tablespaces for index and for data
-            mkdir /datadisk1/pg_db /datadisk2/pg_in
+            mkdir /datadisk1/pg_db /datadisk2/pg_in /datadisk1/scratch
+
+            # make a temp area for deploy user usage
+            chown ${DEPLOY_USER}:${DEPLOY_USER} /datadisk1/scratch
 
             # change the ownership of the new files
             chown postgres:postgres /datadisk1/pg_db /datadisk2/pg_in /var/lib/postgresql/.psqlrc
@@ -1044,8 +1047,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     make_grb_dirs
     prepare_source_data
     install_compile_packages
-    install_tools
     install_carto_compiler
+    install_tools
     process_source_data
     #  process_3d_source_data
 
