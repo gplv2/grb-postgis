@@ -13,6 +13,8 @@ THREADS=$((${CORES}-1))
 FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
 CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
 
+TILESERVER=yes
+
 OGRIDFILE=ogr2osm.id
 
 cd /usr/local/src/grb
@@ -185,19 +187,30 @@ fi
 
 # postgresql work
 
- echo ""
- echo "${GREEN}IMPORT${RESET}"
- echo "======"
+echo ""
+echo "${GREEN}IMPORT${RESET}"
+echo "======"
 
-# /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --unlogged --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+if [ $TILESERVER == 'yes' ] ; then
+    if [ -e "/datadisk2/out/belgium-latest-nobuildings.osm" ]; then
+        # osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
+        # osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
+        echo "${GREEN}Merging GRB and OSM data${RESET}"
+        osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk2/out/belgium-latest-nobuildings.osm --merge --wx /datadisk2/out/joined.osm
+        # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
+        echo "${GREEN}Loading merged dataset in db: grb_api${RESET}"
+        /usr/local/bin/osm2pgsql --slim --unlogged --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/joined.osm
+    fi
+else
+    /usr/local/bin/osm2pgsql --slim --unlogged --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+fi
 
 if [ $? -eq 0 ]
 then
-  echo "${GREEN}Successfully imported processed sources into PGSQL${RESET}"
+    echo "${GREEN}Successfully imported processed sources into PGSQL${RESET}"
 else
-  echo "${GREEN}Could not import merged source files${RESET}" >&2
-  exit 1
+    echo "${GREEN}Could not import merged source files${RESET}" >&2
+    exit 1
 fi
 
 echo "${GREEN}Creating additional indexes...${RESET}"

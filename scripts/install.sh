@@ -336,12 +336,17 @@ function load_osm_data {
     #      --tablespace-slim-index   tablespace for slim mode indexes
 
     # filter out OSM buildings
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/converted.o5m"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmfilter /datadisk2/out/converted.o5m --drop=\"building=\" -o=/usr/local/src/grb/filtered.o5m"
+    echo "${GREEN}Converting .pbf to .o5m${RESET}"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/belgium-latest.o5m"
+    echo "${GREEN}Filtering buildings from .o5m${RESET}"
+    su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmfilter /datadisk2/out/belgium-latest.o5m --drop=\"building=\" -o=/usr/local/src/grb/belgium-latest-nobuildings.o5m'
+    echo "${GREEN}Converting .o5m to .osm${RESET}"
+    su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmconvert --out-osm belgium-latest-nobuildings.o5m > /datadisk2/out/belgium-latest-nobuildings.osm'
 
-    osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
-    osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
+    # osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
+    #osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
 
+    echo "${GREEN}Loading dataset in db: ${DATA_DB} ${RESET}"
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
     sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/joined.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
