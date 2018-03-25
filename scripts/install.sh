@@ -291,11 +291,12 @@ function install_test_site {
 }
 
 function enable_ssl {
-    echo "${GREEN}Building haproxy${RESET}"
-    curl https://www.openssl.org/source/openssl-1.0.2g.tar.gz | tar xz && cd openssl-1.0.2g && sudo ./config no-ssl2 no-ssl3 && sudo make -j ${CORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install
+    echo "${GREEN}Building openssl${RESET}"
+    curl https://www.openssl.org/source/openssl-1.0.2n.tar.gz | tar xz && cd openssl-1.0.2n && sudo ./config no-ssl2 no-ssl3 && sudo make -j ${CORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/ && make install && ldconfig
 
     cd /usr/local/src/ && git clone http://git.haproxy.org/git/haproxy-1.7.git
 
+    echo "${GREEN}Building haproxy${RESET}"
     cd haproxy-1.7 && make -j ${DOUBLECORES} TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 SSL_LIB=/usr/local/ssl/lib SSL_INC=/usr/local/ssl/include/
 
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 haproxy
@@ -320,6 +321,7 @@ function enable_ssl {
     # softlink the default cert
     cd /etc/haproxy/ && ln -s certs.d/tiles.pem default.pem
 
+    echo "${GREEN}Starting haproxy${RESET}"
     /etc/init.d/haproxy start
 }
 
@@ -337,8 +339,11 @@ function load_osm_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/converted.o5m"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmfilter /datadisk2/out/converted.o5m --drop=\"building=\" -o=/usr/local/src/grb/filtered.o5m"
 
+    osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
+    osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
+
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --unlogged -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/joined.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
 }
 
 function create_osm_indexes {
@@ -373,7 +378,7 @@ function create_osm_indexes {
 function transform_srid {
     echo "${GREEN}Transforming data${RESET}"
     # now inxdex extra
-    # this should not be needed anymore when importing with osm2pgsql -m flag instead of -l
+    # this shoul not be needed anymore when importing with osm2pgsql -m flag instead of -l
     su - postgres -c "cat /tmp/transform_db.sql | psql -d ${DATA_DB}"
 }
 
