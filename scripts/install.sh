@@ -339,12 +339,15 @@ function load_osm_data {
     echo "${GREEN}Converting .pbf to .o5m${RESET}"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/belgium-latest.o5m"
     echo "${GREEN}Filtering buildings from .o5m${RESET}"
-    su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmfilter /datadisk2/out/belgium-latest.o5m --drop=\"building=\" -o=/usr/local/src/grb/belgium-latest-nobuildings.o5m'
+    su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmfilter /datadisk2/out/belgium-latest.o5m --drop="building=" -o=/usr/local/src/grb/belgium-latest-nobuildings.o5m'
     echo "${GREEN}Converting .o5m to .osm${RESET}"
     su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmconvert --out-osm belgium-latest-nobuildings.o5m > /datadisk2/out/belgium-latest-nobuildings.osm'
 
-    # osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
-    #osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
+    su - ${DEPLOY_USER}t -c " osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm"
+
+    # cat /datadisk2/out/belgium-latest-nobuildings-renumbered.osm  | ./osm-renumber.pl > /datadisk1/scratch/belgium-latest-nobuildings-renum.osm
+    # osmium renumber -v --progress /datadisk2/out/belgium-latest-nobuildings-sorted.osm -o /datadisk2/out/belgium-latest-nobuildings-renumbered.osm
+    # osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm /datadisk2/out/belgium-latest-nobuildings-sorted.osm
 
     echo "${GREEN}Loading dataset in db: ${DATA_DB} ${RESET}"
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database

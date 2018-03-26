@@ -193,10 +193,11 @@ echo "======"
 
 if [ $TILESERVER == 'yes' ] ; then
     if [ -e "/datadisk2/out/belgium-latest-nobuildings.osm" ]; then
-        # osmconvert --out-o5m /datadisk2/out/all_merged.osm > /datadisk1/scratch/grb.o5m
-        # osmium merge --progress -f pbf /usr/local/src/grb/filtered.o5m > /datadisk1/scratch/grb.o5m -o /usr/local/src/grb/joined.pbf
+        #echo "${GREEN}Renumbering OSM data${RESET}"
+        #osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk1/scratch/joined.osm
+         
         echo "${GREEN}Merging GRB and OSM data${RESET}"
-        osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk2/out/belgium-latest-nobuildings.osm --merge --wx /datadisk2/out/joined.osm
+        osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm --merge --wx /datadisk2/out/joined.osm
         # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
         echo "${GREEN}Loading merged dataset in db: grb_api${RESET}"
         /usr/local/bin/osm2pgsql --slim --unlogged --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/be-carto/openstreetmap-carto.style --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --multi-geometry -d grb_api -U grb-data -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/joined.osm
