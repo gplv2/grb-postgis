@@ -343,7 +343,7 @@ function load_osm_data {
     echo "${GREEN}Converting .o5m to .osm${RESET}"
     su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmconvert --out-osm belgium-latest-nobuildings.o5m > /datadisk2/out/belgium-latest-nobuildings.osm'
 
-    su - ${DEPLOY_USER}t -c " osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm"
+    su - ${DEPLOY_USER}t -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm"
 
     # cat /datadisk2/out/belgium-latest-nobuildings-renumbered.osm  | ./osm-renumber.pl > /datadisk1/scratch/belgium-latest-nobuildings-renum.osm
     # osmium renumber -v --progress /datadisk2/out/belgium-latest-nobuildings-sorted.osm -o /datadisk2/out/belgium-latest-nobuildings-renumbered.osm

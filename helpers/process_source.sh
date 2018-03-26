@@ -195,7 +195,7 @@ if [ $TILESERVER == 'yes' ] ; then
     if [ -e "/datadisk2/out/belgium-latest-nobuildings.osm" ]; then
         #echo "${GREEN}Renumbering OSM data${RESET}"
         #osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk1/scratch/joined.osm
-         
+
         echo "${GREEN}Merging GRB and OSM data${RESET}"
         osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm --merge --wx /datadisk2/out/joined.osm
         # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
