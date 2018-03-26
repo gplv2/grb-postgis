@@ -154,8 +154,15 @@ function install_tools {
     # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
     cp /usr/local/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
     #
-    cp /tmp/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
-    cp /tmp/openstreetmap-carto-3d.style /usr/local/src/openstreetmap-carto/
+    cp /tmp/configs/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
+    cp /tmp/configs/openstreetmap-carto-3d.style /usr/local/src/openstreetmap-carto/
+
+    # merge styles
+    cp /tmp/configs/openstreetmap-carto.merge.* /usr/local/src/be-carto/
+
+    echo "${GREEN}Installing small tools in /usr/local/bin/${RESET}"
+    cp /tmp/osm-renumber.pl /usr/local/bin/
+    chmod +x /usr/local/bin/osm-renumber.pl
 }
 
 function install_compile_packages {
@@ -340,10 +347,17 @@ function load_osm_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && osmconvert --out-o5m belgium-latest.osm.pbf > /datadisk2/out/belgium-latest.o5m"
     echo "${GREEN}Filtering buildings from .o5m${RESET}"
     su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmfilter /datadisk2/out/belgium-latest.o5m --drop="building=" -o=/usr/local/src/grb/belgium-latest-nobuildings.o5m'
-    echo "${GREEN}Converting .o5m to .osm${RESET}"
+    echo "${GREEN}Converting .o5m to .osm${RESET} (for osmosis)"
     su - ${DEPLOY_USER} -c 'cd /usr/local/src/grb && osmconvert --out-osm belgium-latest-nobuildings.o5m > /datadisk2/out/belgium-latest-nobuildings.osm'
 
-    su - ${DEPLOY_USER}t -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm"
+    echo "${GREEN}Sorting OSM file${RESET}"
+    su - ${DEPLOY_USER} -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm"
+
+    echo "${GREEN}Renumbering sorted file${RESET}"
+    su - ${DEPLOY_USER} -c "cat /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm  | osm-renumber.pl > /datadisk2/out/belgium-latest-nobuildings-renum.osm"
+
+    echo "${GREEN}Sorting OSM file${RESET}"
+    su - ${DEPLOY_USER} -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings-renum.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm"
 
     # cat /datadisk2/out/belgium-latest-nobuildings-renumbered.osm  | ./osm-renumber.pl > /datadisk1/scratch/belgium-latest-nobuildings-renum.osm
     # osmium renumber -v --progress /datadisk2/out/belgium-latest-nobuildings-sorted.osm -o /datadisk2/out/belgium-latest-nobuildings-renumbered.osm
