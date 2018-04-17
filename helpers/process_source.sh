@@ -192,7 +192,7 @@ echo "${GREEN}IMPORT${RESET}"
 echo "======"
 
 if [ $TILESERVER == 'yes' ] ; then
-    if [ ! -e "/datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm" ]; then
+    if [ -e "/datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm" ]; then
         #echo "${GREEN}Renumbering OSM data${RESET}"
         #osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk1/scratch/joined.osm
         echo "${GREEN}Renumbering GRB OSM file${RESET}"
@@ -208,7 +208,7 @@ if [ $TILESERVER == 'yes' ] ; then
         echo "${GREEN}Loading merged dataset in db: grb_api${RESET}"
         /usr/local/bin/osm2pgsql --slim --unlogged --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/be-carto/openstreetmap-carto.style --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --multi-geometry -d grb_api -U grb-data -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/joined.osm
     else
-        echo "${RED}Could not find OSM source file${RESET}" >&2
+        echo "${RED}Could not find OSM filtered source file${RESET}" >&2
         exit 1
     fi
 else

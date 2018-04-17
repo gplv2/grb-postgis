@@ -1080,10 +1080,11 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_compile_packages
     install_carto_compiler
     install_tools
+    load_osm_data
     process_source_data
     #  process_3d_source_data
 
-    # tileserver add-on
+    # tileserver add-ons
     install_mapnik
     install_modtile
     preprocess_carto
@@ -1095,7 +1096,6 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_letsencrypt
     install_test_site
     enable_ssl
-    load_osm_data
     create_osm_indexes
     #transform_srid
     echo "${GREEN}Done database section${RESET}"
