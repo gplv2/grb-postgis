@@ -44,17 +44,17 @@ resource "google_compute_instance" "db" {
   }
 
   disk {
-    type        = "local-ssd"
+    type        = "pd-ssd"
     auto_delete = true
     scratch     = true
-    #size        = 65
+    size        = 100
   }
 
   disk {
-    type        = "local-ssd"
+    type        = "pd-ssd"
     auto_delete = true
     scratch     = true
-    #size        = 65
+    size        = 100
   }
 
   network_interface {
