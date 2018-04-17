@@ -192,7 +192,7 @@ echo "${GREEN}IMPORT${RESET}"
 echo "======"
 
 if [ $TILESERVER == 'yes' ] ; then
-    if [ -e "/datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm" ]; then
+    if [ ! -e "/datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm" ]; then
         #echo "${GREEN}Renumbering OSM data${RESET}"
         #osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk1/scratch/joined.osm
         echo "${GREEN}Renumbering GRB OSM file${RESET}"
