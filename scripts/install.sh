@@ -372,7 +372,9 @@ function create_osm_indexes {
     echo "${GREEN}Creating data indexes${RESET}"
     # now inxdex extra
     su - postgres -c "cat /tmp/tile_indexes.sql | psql -d ${DATA_DB}"
+}
 
+function move_indexes_tablespace {
     echo  "Stopping renderd service (close postgres connections)"
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
 
@@ -393,6 +395,8 @@ function create_osm_indexes {
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+
+    su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 }
@@ -1097,7 +1101,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_test_site
     enable_ssl
     create_osm_indexes
-    #transform_srid
+    move_indexes_tablespace
+    #transform_srid  Not needed anymore for tileserver
     echo "${GREEN}Done database section${RESET}"
 fi
 
