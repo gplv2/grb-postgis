@@ -20,14 +20,14 @@ printf "Setting up for ubuntu %s - %s\n" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
 echo "Install packages ..."
 # DISTRIB_RELEASE=14.04
 if [ "$DISTRIB_RELEASE" = "14.04" ]; then
-apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" haproxy pgbouncer keepalived
+    apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" haproxy pgbouncer keepalived repmgr
 fi
 
 # -o Dpkg::Options::=--force-confnew install
 
 if [ "$DISTRIB_RELEASE" = "16.04" ]; then
     echo "Install $DISTRIB_RELEASE packages ..."
-    apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" haproxy pgbouncer keepalived
+    apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" haproxy pgbouncer keepalived repmgr
     apt-get install -y -o Dpkg::Options::="--force-confnew" php-msgpack > /dev/null
 fi
 

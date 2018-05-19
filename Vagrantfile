@@ -77,8 +77,8 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell" do |s|
-    s.name = "Restarting DB and HAPROXY"
-    s.inline = "sudo service postgres restart"
+    s.name = "Restarting HAPROXY"
+    s.inline = "sudo service haproxy restart"
   end
 
   # Provider-specific configuration so you can fine-tune various
