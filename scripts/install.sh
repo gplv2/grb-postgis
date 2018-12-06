@@ -63,6 +63,8 @@ DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
 
 DEBIAN_FRONTEND=noninteractive
 
+GRB_RELEASE_DATE=20181204
+
 # use fuse mount to save unzip space
 SAVESPACE=yes
 
@@ -470,11 +472,11 @@ function prepare_source_data {
     echo "${GREEN}downloading GRB extracts (mirror)${RESET}"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_10000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_20001B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_30000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_40000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRBgis_20171105_70000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
 
     echo "${GREEN}downloading GRB 3D extracts (mirror)${RESET}"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500.zip"
@@ -490,11 +492,11 @@ function prepare_source_data {
         mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
         chown ${DEPLOY_USER}:${DEPLOY_USER} GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
 
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_10000B500.zip GRBgis_10000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_20001B500.zip GRBgis_20001"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_30000B500.zip GRBgis_30000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_40000B500.zip GRBgis_40000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRBgis_20171105_70000B500.zip GRBgis_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip GRBgis_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip GRBgis_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip GRBgis_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip GRBgis_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip GRBgis_70000"
 
         mkdir 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
         chown ${DEPLOY_USER}:${DEPLOY_USER} 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
@@ -524,11 +526,11 @@ function prepare_source_data {
     else
         echo "${GREEN}extracting GRB data...${RESET}"
         # unpacking all provinces data
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_10000B500.zip -d GRBgis_10000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_20001B500.zip -d GRBgis_20001"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_30000B500.zip -d GRBgis_30000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_40000B500.zip -d GRBgis_40000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRBgis_20171105_70000B500.zip -d GRBgis_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip -d GRBgis_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip -d GRBgis_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip -d GRBgis_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip -d GRBgis_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip -d GRBgis_70000"
         # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
 
         echo "${GREEN}extracting 3D data...${RESET}"

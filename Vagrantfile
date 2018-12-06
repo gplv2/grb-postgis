@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "db" do |db|
     # Every Vagrant development environment requires a box. You can search for
     # boxes at https://atlas.hashicorp.com/search.
-    db.vm.box = "ubuntu/xenial64"
+    db.vm.box = "generic/rhel7"
 
     # Configure Local Variable To Access Scripts From Remote Location
     scriptDir = File.dirname(__FILE__)
@@ -79,7 +79,7 @@ Vagrant.configure("2") do |config|
 
     db.vm.provision "shell" do |s|
       s.name = "Restarting HAPROXY"
-      s.inline = "sudo service haproxy restart"
+      s.inline = "sudo service postgresql restart"
     end
 
     # Provider-specific configuration so you can fine-tune various
@@ -117,7 +117,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "haproxy" do |haproxy|
     # Every Vagrant development environment requires a box. You can search for
     # boxes at https://atlas.hashicorp.com/search.
-    haproxy.vm.box = "ubuntu/xenial64"
+    haproxy.vm.box = "ubuntu/trusty64"
 
     # Configure Local Variable To Access Scripts From Remote Location
     scriptDir = File.dirname(__FILE__)
@@ -172,8 +172,8 @@ Vagrant.configure("2") do |config|
     #haproxy.vm.provision "shell", :inline => "exit 1"
 
     #haproxy.vm.provision "shell" do |s|
-      #s.name = "Creating Postgres Database"
-      #s.inline = localscriptDir + "/create-postgres.sh " + dbName + " " + dbUser
+    #s.name = "Creating Postgres Database"
+    #s.inline = localscriptDir + "/create-postgres.sh " + dbName + " " + dbUser
     #end
 
     haproxy.vm.provision "shell" do |s|
@@ -216,5 +216,4 @@ Vagrant.configure("2") do |config|
     #   apt-get install -y apache2
     # SHELL
   end
-end
 end
