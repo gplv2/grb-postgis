@@ -479,12 +479,14 @@ function prepare_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
 
     echo "${GREEN}downloading GRB 3D extracts (mirror)${RESET}"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_30000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_20001B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_40000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500_Shapefile.zip"
+
+    echo "${GREEN}Done${RESET}"
 
     if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
         # If you are low on diskspace, you can use fuse to mount the zips as device in user space
@@ -501,12 +503,12 @@ function prepare_source_data {
         mkdir 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
         chown ${DEPLOY_USER}:${DEPLOY_USER} 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
 
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_04000B500.zip 3D_GRB_04000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_30000B500.zip 3D_GRB_30000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_20001B500.zip 3D_GRB_20001"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_40000B500.zip 3D_GRB_40000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_70000B500.zip 3D_GRB_70000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_10000B500.zip 3D_GRB_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_04000B500_Shapefile.zip 3D_GRB_04000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_30000B500_Shapefile.zip 3D_GRB_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_20001B500_Shapefile.zip 3D_GRB_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_40000B500_Shapefile.zip 3D_GRB_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_70000B500_Shapefile.zip 3D_GRB_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/3D_GRB_10000B500_Shapefile.zip 3D_GRB_10000"
 
         # unmounting :
 
@@ -534,12 +536,12 @@ function prepare_source_data {
         # GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
 
         echo "${GREEN}extracting 3D data...${RESET}"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500.zip -d 3D_GRB_04000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500.zip -d 3D_GRB_30000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500.zip -d 3D_GRB_20001"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_40000B500.zip -d 3D_GRB_40000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500.zip -d 3D_GRB_70000"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500.zip -d 3D_GRB_10000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_04000B500_Shapefile.zip -d 3D_GRB_04000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_30000B500_Shapefile.zip -d 3D_GRB_30000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_20001B500_Shapefile.zip -d 3D_GRB_20001"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_40000B500_Shapefile.zip -d 3D_GRB_40000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_70000B500_Shapefile.zip -d 3D_GRB_70000"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip 3D_GRB_10000B500_Shapefile.zip -d 3D_GRB_10000"
         # 3D_GRB_04000 3D_GRB_30000 3D_GRB_20001 3D_GRB_40000 3D_GRB_70000 3D_GRB_10000
         echo "${GREEN}Done extracting and preparing sources${RESET}"
     fi
