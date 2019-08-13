@@ -51,7 +51,7 @@ do
  rm -Rf "${filename}_parsed"
  echo "OGR FILE INFO"
  echo "============="
- /usr/local/bin/ogrinfo -al -so ${dirname}/${filename}.shp
+ /usr/local/bin/ogrinfo -al -ro -so ${dirname}/${filename}.shp
  echo ""
 
  echo "OGR2OGR"
