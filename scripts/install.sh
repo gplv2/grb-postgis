@@ -16,7 +16,7 @@ CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
 PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
 
 # GDAL_VERSION=2.2.4 (older)
-GDAL_VERSION=3.0.1
+GDAL_VERSION=2.4.2
 PROJ_VERSION=6.1.1
 
 TILESERVER=no
@@ -120,13 +120,13 @@ function install_tools {
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
     cd /usr/local/src/ && git clone --recursive https://github.com/mapbox/protozero.git && cd /usr/local/src/protozero && mkdir build && cd build && cmake .. && make -j ${DOUBLECORES} && make install
 
-    echo "Building PROJ 6"
-    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/proj/proj-${PROJ_VERSION}.tar.gz  && tar -xzvf proj-${PROJ_VERSION}.tar.gz && cd proj-${PROJ_VERSION} && ./configure && make -j ${THREADS} && make install && ldconfig
+    #echo "Building PROJ 6"
+    #cd /usr/local/src/ && wget --quiet https://download.osgeo.org/proj/proj-${PROJ_VERSION}.tar.gz  && tar -xzvf proj-${PROJ_VERSION}.tar.gz && cd proj-${PROJ_VERSION} && ./configure && make -j ${THREADS} && make install && ldconfig
 
     # we gonna need a few tools , start with GDAL (for ogr)
     echo "Building GDAL"
     #cd /usr/local/src/ && wget --quiet http://download.osgeo.org/gdal/2.2.0/gdal-2.2.0.tar.gz && tar -xzvf gdal-2.2.0.tar.gz && cd gdal-2.2.0 && ./configure && make -j ${DOUBLECORES} && make install && ldconfig
-    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && tar -xzvf gdal-${GDAL_VERSION}.tar.gz && cd gdal-${GDAL_VERSION} && ./configure --with-proj=/usr/local && make -j ${THREADS} && make install && ldconfig
+    cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && tar -xzvf gdal-${GDAL_VERSION}.tar.gz && cd gdal-${GDAL_VERSION} && ./configure  && make -j ${THREADS} && make install && ldconfig
 
     echo "Building osm2pgsql"
     cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
