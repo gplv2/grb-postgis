@@ -153,14 +153,16 @@ function install_tools {
     # carto CSS for building our custom OSM DB
     cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
 
-    # carto for BELGIUM tiles
-    cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
+    if [ $TILESERVER == 'yes' ] ; then
+    	# carto for BELGIUM tiles
+    	cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
 
-    #sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
-    sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
+    	#sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
+    	sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
 
-    cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
-    cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
+    	cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
+    	cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
+    fi
 
     # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
     cp /usr/local/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto-orig.style
@@ -168,8 +170,10 @@ function install_tools {
     cp /tmp/configs/openstreetmap-carto.style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style
     cp /tmp/configs/openstreetmap-carto-3d.style /usr/local/src/openstreetmap-carto/
 
-    # merge styles
-    cp /tmp/configs/openstreetmap-carto.merge.* /usr/local/src/be-carto/
+    if [ $TILESERVER == 'yes' ] ; then
+    	# merge styles
+    	cp /tmp/configs/openstreetmap-carto.merge.* /usr/local/src/be-carto/
+    fi
 
     echo "${GREEN}Installing small tools in /usr/local/bin/${RESET}"
     cp /tmp/osm-renumber.pl /usr/local/bin/
@@ -376,7 +380,11 @@ function load_osm_data {
 
     echo "${GREEN}Loading dataset in db: ${DATA_DB} ${RESET}"
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
-    sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    if [ $TILESERVER == 'yes' ] ; then
+    	sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    else
+    	sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    fi	
 }
 
 function create_osm_indexes {
