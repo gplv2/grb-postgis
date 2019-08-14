@@ -18,6 +18,8 @@ PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
 # GDAL_VERSION=2.2.4 (older)
 GDAL_VERSION=3.0.1
 
+TILESERVER=no
+
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
@@ -1094,22 +1096,24 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_tools
     load_osm_data
     process_source_data
-    #  process_3d_source_data
+    process_3d_source_data
 
-    # tileserver add-ons
-    install_mapnik
-    install_modtile
-    preprocess_carto
-    install_shapefiles
-    config_modtile
-    config_renderd
-    install_renderd_service
-    install_nginx_tilecache
-    install_letsencrypt
-    install_test_site
-    enable_ssl
-    create_osm_indexes
-    move_indexes_tablespace
+    if [ $TILESERVER == 'yes' ] ; then
+        # tileserver add-ons
+        install_mapnik
+        install_modtile
+        preprocess_carto
+        install_shapefiles
+        config_modtile
+        config_renderd
+        install_renderd_service
+        install_nginx_tilecache
+        install_letsencrypt
+        install_test_site
+        enable_ssl
+        create_osm_indexes
+        move_indexes_tablespace
+    fi
     #transform_srid  Not needed anymore for tileserver
     echo "${GREEN}Done database section${RESET}"
 fi

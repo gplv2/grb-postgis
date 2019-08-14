@@ -13,7 +13,7 @@ THREADS=$((${CORES}-1))
 FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
 CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
 
-TILESERVER=yes
+TILESERVER=no
 
 OGRIDFILE=ogr2osm.id
 
