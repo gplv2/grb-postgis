@@ -393,10 +393,11 @@ function move_indexes_tablespace {
     su - postgres -c "cat /tmp/alter.pre.ts.sql | psql -d ${DATA_DB}"
 
     echo "${GREEN}Moving data + indexes to tablespace${RESET}"
-    # move those indexes for grb_temp
-    sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
-
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
+
+    # move those indexes for grb_temp
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts.sql 2>/dev/null"
+    #sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
 
     # restorey
     sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql

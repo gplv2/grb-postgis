@@ -143,8 +143,8 @@ fi
 
 echo "Creating additional indexes..."
 
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p1 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p2 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 
 # setup source tag for all objects imported
@@ -178,6 +178,14 @@ else
   echo "Could not execute indexing/updates" >&2
   exit 1
 fi
+
+# datatype fixes
+cat > /tmp/datatype.tags.sql << EOF
+ALTER ${TABLEPREFIX}_polygon alter column "source:geometry:oidn" TYPE INTEGER  USING ("source:geometry:oidn"::integer) ;
+ALTER ${TABLEPREFIX}_polygon alter column "source:geometry:uidn" TYPE INTEGER  USING ("source:geometry:uidn"::integer) ;
+EOF
+
+cat /tmp/datatype.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
 
 # change tags in DB
 # DELETE FROM planet_osm_polygon WHERE building IN ('garage3','pijler','rooster','zichtbare onderkeldering','cultuur-historisch monument','cabine','garage4','staketsel','gebouw afgezoomd met virtuele gevels','tunnelmond');
