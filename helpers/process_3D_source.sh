@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export $(grep -v '^#' /tmp/configs/variables | xargs)
+source /tmp/configs/variables
 
 OGRIDFILE=ogr2osm.id
 

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export $(grep -v '^#' /tmp/configs/variables | xargs)
+source /tmp/configs/variables
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
