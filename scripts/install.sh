@@ -1137,8 +1137,11 @@ if [ $TILESERVER == 'no' ] ; then
     mkdir /datadisk2/datadump
     chown -R postgres:postgres /datadisk2/datadump
 
-    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DATA_DB}.dump -Fc --no-owner -v --no-tablespaces ${DATA_DB}"
-    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DB}.dump -Fc --no-owner -v --no-tablespaces ${DB}"
+    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DATA_DB}.dump --no-owner -v --no-tablespaces ${DATA_DB}"
+    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DB}.dump --no-owner -v --no-tablespaces ${DB}"
+
+    su - postgres -c "cd /datadisk2/datadump && gzip *.dump"
+
     echo "${GREEN}Dump done${RESET}"
 fi
 
