@@ -212,7 +212,7 @@ if [ $TILESERVER == 'yes' ] ; then
         exit 1
     fi
 else
-        /usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/be-carto/openstreetmap-carto.style --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.lua --multi-geometry -d grb_api -U grb-data -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/all_merged.osm
+        /usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --multi-geometry -d grb_api -U grb-data -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/all_merged.osm
 fi
 
 if [ $? -eq 0 ]
