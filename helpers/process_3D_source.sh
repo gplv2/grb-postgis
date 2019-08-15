@@ -37,22 +37,22 @@ do
  TABLEPREFIX=lidar
 
  echo $dirname
- echo "Cleanup parsed"
+ echo "${GREEN}Cleanup parsed${RESET}"
  echo "=============="
  rm -Rf "${filename}_parsed"
- echo "OGR FILE INFO"
+ echo "${GREEN}OGR FILE INFO${RESET}"
  echo "============="
  /usr/local/bin/ogrinfo -al -ro -so ${dirname}/${filename}.shp
  echo ""
 
- echo "OGR2OGR"
+ echo "${GREEN}OGR2OGR${RESET}"
  echo "======="
  echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  echo ""
- echo "OGR2OSM"
+ echo "${GREEN}OGR2OSM${RESET}"
  echo "======="
  rm -f "${filename}.osm"
  echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
@@ -75,13 +75,13 @@ done
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully parsed 3D GRB sources"
+  echo "${GREEN}Successfully parsed GRB 3D sources${RESET}"
 else
-  echo "Could not process sources file" >&2
+  echo "${RED}Could not process sources file${RESET}" >&2
   exit 1
 fi
 
-echo "OSMOSIS MERGE"
+echo "${GREEM}OSMOSIS MERGE${RESET}"
 echo "============="
 
 osmosis  \
@@ -100,7 +100,7 @@ osmosis  \
 
 if [ $? -eq 0 ]
 then
-    echo "Successfully merged 3D GRB sources"
+    echo "${GREEN}Successfully merged GRB 3D sources${RESET}"
     echo "Cleaning up diskspace - removing 3D zip files"
     cd /usr/local/src/grb && rm -f *.zip
     echo "Cleaning up diskspace - removing parsed files"
@@ -111,28 +111,28 @@ then
     rm -f GRBGebL1D240000B500.osm
     rm -f GRBGebL1D270000B500.osm
 else
-  echo "Could not merge sources file" >&2
+  echo "${RED}Could not merge sources file${RESET}" >&2
   exit 1
 fi
 
 # postgresql work
 
- echo ""
- echo "IMPORT"
- echo "======"
+echo ""
+echo "${GREEN}IMPORT${RESET}"
+echo "======"
 
 # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
 /usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully imported processed 3D GRB sources into PGSQL"
+    echo "${GREEN}Successfully imported processed 3D GRB sources into PGSQL${RESET}"
 else
-  echo "Could not import merged source files" >&2
-  exit 1
+    echo "${GREEN}Could not import merged source files${RESET}" >&2
+    exit 1
 fi
 
-echo "Creating additional indexes..."
+echo "${GREEN}Creating additional indexes...${RESET}"
 
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p1 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p2 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
@@ -147,7 +147,7 @@ echo "CREATE INDEX ${TABLEPREFIX}_osm_src_index_p ON ${TABLEPREFIX}_polygon USIN
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
 echo "UPDATE ${TABLEPREFIX}_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h 127.0.0.1
 
-echo "creating additional indexes..."
+echo "${GREEN}creating additional indexes...${RESET}"
 
 cat > /tmp/create.indexes.sql << EOF
 CREATE INDEX idx_${TABLEPREFIX}_osm_line_nobridge ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
@@ -164,9 +164,9 @@ cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully created indexes/updates"
+  echo "${GREEN}Successfully created indexes/updates${RESET}"
 else
-  echo "Could not execute indexing/updates" >&2
+  echo "${RED}Could not execute indexing/updates${RESET}" >&2
   exit 1
 fi
 
@@ -200,9 +200,9 @@ cat /tmp/update.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully Updated/mapped tags to their OSM counterparts"
+  echo "${GREEN}Successfully Updated/mapped tags to their OSM counterparts${RESET}"
 else
-  echo "Could not execute deletes/updates" >&2
+  echo "${RED}Could not execute deletes/updates${RESET}" >&2
   exit 1
 fi
 
@@ -248,8 +248,8 @@ fusermount -u /usr/local/src/grb/3D_GRB_70000
 fusermount -u /usr/local/src/grb/3D_GRB_10000
 
 echo ""
-echo "Flush 3D cache"
-echo "=============="
+echo "${GREEN}Flush cache${RESET}"
+echo ""
  # flush redis cache
 echo "flushall" | redis-cli
 
