@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
+set -o allexport
 source /tmp/configs/variables
+set +o allexport
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then

@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
+set -o allexport
 source /tmp/configs/variables
+set +o allexport
 
 OGRIDFILE=ogr2osm.id
 
