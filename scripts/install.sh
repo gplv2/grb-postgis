@@ -1130,4 +1130,16 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "${GREEN}Done database section${RESET}"
 fi
 
+# Finally dump the database to disk
+
+if [ $TILESERVER == 'no' ] ; then
+    echo "${GREEN}Dumping DB content to disk${RESET}"
+    mkdir /datadisk2/datadump
+    chown -R postgres:postgres /datadisk2/datadump
+
+    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DATA_DB}.dump -Fc --no-owner -v --no-tablespaces ${DATA_DB}"
+    su - postgres -c "cd /datadisk2/datadump && pg_dump --clean --if-exists -C -f ${DB}.dump -Fc --no-owner -v --no-tablespaces ${DB}"
+    echo "${GREEN}Dump done${RESET}"
+fi
+
 echo "${GREEN}Provisioning done${RESET}"
