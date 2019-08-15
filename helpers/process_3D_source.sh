@@ -248,6 +248,14 @@ fi
 #  exit 1
 #fi
 
+# 3D GRB
+fusermount -u /usr/local/src/grb/3D_GRB_04000
+fusermount -u /usr/local/src/grb/3D_GRB_30000
+fusermount -u /usr/local/src/grb/3D_GRB_20001
+fusermount -u /usr/local/src/grb/3D_GRB_40000
+fusermount -u /usr/local/src/grb/3D_GRB_70000
+fusermount -u /usr/local/src/grb/3D_GRB_10000
+
 echo ""
 echo "Flush 3D cache"
 echo "=============="
