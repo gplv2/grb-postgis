@@ -1,19 +1,6 @@
 #!/bin/bash -e
 
-# Screen colors using tput
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
-#ex: echo "${RED}red text ${GREEN}green text${RESET}"
-
-# count cores
-CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
-THREADS=$((${CORES}-1))
-
-FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
-CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
-
-TILESERVER=no
+export $(grep -v '^#' /tmp/configs/variables | xargs)
 
 OGRIDFILE=ogr2osm.id
 

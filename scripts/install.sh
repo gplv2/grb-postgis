@@ -1,33 +1,11 @@
 #!/bin/bash -e
 
-# Screen colors using tput
-RED=`tput setaf 1`
-GREEN=`tput setaf 2`
-RESET=`tput sgr0`
-#ex: echo "${RED}red text ${GREEN}green text${RESET}"
-
-# count cores
-CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
-THREADS=$((${CORES}-1))
-DOUBLETHREADS=$((${CORES}*2))
-
-FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
-CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
-PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
-
-# GDAL_VERSION=2.2.4 (older)
-GDAL_VERSION=2.4.2
-PROJ_VERSION=6.1.1
-
-TILESERVER=no
-
+export $(grep -v '^#' /tmp/configs/variables | xargs)
 
 # RESOURCE_INDEX= grb-db-0
 if [ -z "$RESOURCE_INDEX" ] ; then
     RESOURCE_INDEX=`hostname`
 fi
-
-CLOUD=google
 
 echo "${GREEN}Gather metadata${RESET}"
 
@@ -54,25 +32,6 @@ if [ "${CLOUD}" = "google" ]; then
 fi
 
 echo "${GREEN}Setting up configuration${RESET}"
-PROJECT_NAME=grbapi
-PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
-DB=grb_api
-USER=grb-data
-DEPLOY_USER=glenn
-PGPASS=/home/${DEPLOY_USER}/.pgpass
-PGRC=/home/${DEPLOY_USER}/.psqlrc
-
-# ini file for events/items DB access
-DATA_DB=grb_temp
-PASSWORD=str0ngDBp4ssw0rd
-DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
-
-DEBIAN_FRONTEND=noninteractive
-
-GRB_RELEASE_DATE=20181204
-
-# use fuse mount to save unzip space
-SAVESPACE=yes
 
 export DEBIAN_FRONTEND=$DEBIAN_FRONTEND
 export RESOURCE_INDEX=$RESOURCE_INDEX
@@ -395,9 +354,10 @@ function create_osm_indexes {
 
 
 function move_indexes_tablespace {
-    echo  "Stopping renderd service (close postgres connections)"
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
-
+    if [ $TILESERVER == 'yes' ] ; then
+        echo  "Stopping renderd service (close postgres connections)"
+        [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+    fi
     echo "${GREEN}Preparing pre-move data + indexes${RESET}"
     # premove to default to avoid errors
     MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
@@ -419,7 +379,9 @@ function move_indexes_tablespace {
 
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
 
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+    if [ $TILESERVER == 'yes' ] ; then
+        [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+    fi
 }
 
 function transform_srid {
@@ -432,7 +394,11 @@ function transform_srid {
 function alter_geometry {
     echo "${GREEN}Transform data ${RESET}"
     # now inxdex extra
-    su - postgres -c "cat /tmp/alter_geometry.sql | psql -d ${DATA_DB}"
+    echo "${GREEN}${DATA_DB} data ${RESET}"
+    su - postgres -c "cat /tmp/alter_geometry_api.sql | psql -d ${DATA_DB}"
+    echo "${GREEN}${DB} data ${RESET}"
+    su - postgres -c "cat /tmp/alter_geometry_osm.sql | psql -d ${DB}"
+    echo "${GREEN}DONE ${RESET}"
 }
 
 function process_source_data {
@@ -453,10 +419,15 @@ function process_3d_source_data {
     chmod +x /tmp/process_3D_source.sh
     su - ${DEPLOY_USER} -c "/tmp/process_3D_source.sh"
 
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+    if [ $TILESERVER == 'yes' ] ; then
+        [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+    fi
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
     su - postgres -c "cat /tmp/alter.ts.sql | psql"
-    [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+
+    if [ $TILESERVER == 'yes' ] ; then
+        [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+    fi
 }
 
 
