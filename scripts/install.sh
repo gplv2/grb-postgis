@@ -393,6 +393,7 @@ function create_osm_indexes {
     su - postgres -c "cat /tmp/tile_indexes.sql | psql -d ${DATA_DB}"
 }
 
+
 function move_indexes_tablespace {
     echo  "Stopping renderd service (close postgres connections)"
     [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
@@ -426,6 +427,12 @@ function transform_srid {
     # now inxdex extra
     # this shoul not be needed anymore when importing with osm2pgsql -m flag instead of -l
     su - postgres -c "cat /tmp/transform_db.sql | psql -d ${DATA_DB}"
+}
+
+function alter_geometry {
+    echo "${GREEN}Transform data ${RESET}"
+    # now inxdex extra
+    su - postgres -c "cat /tmp/alter_geometry.sql | psql -d ${DATA_DB}"
 }
 
 function process_source_data {
@@ -1125,8 +1132,10 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         enable_ssl
         create_osm_indexes
         move_indexes_tablespace
+        #transform_srid  Not needed anymore for tileserver
+    else
+        alter_geometry  #Not needed anymore for tileserver
     fi
-    #transform_srid  Not needed anymore for tileserver
     echo "${GREEN}Done database section${RESET}"
 fi
 
