@@ -136,6 +136,7 @@ echo "${GREEN}Creating additional indexes...${RESET}"
 
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p1 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p2 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p3 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:ref\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
 
 # setup source tag for all objects imported
