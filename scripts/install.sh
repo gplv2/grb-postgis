@@ -620,6 +620,12 @@ function install_os_packages {
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
 
+   # sudo apt-get install -y python-software-properties
+   # sudo add-apt-repository -y ppa:ondrej/php
+   # sudo apt-get update -y
+   # apt-cache pkgnames | grep php7.1
+   # apt-get install php7.1
+
     [ -r /etc/lsb-release ] && . /etc/lsb-release
 
     if [ -z "$DISTRIB_RELEASE" ] && [ -x /usr/bin/lsb_release ]; then
@@ -630,8 +636,11 @@ function install_os_packages {
 
     echo "Preparing for ubuntu %s - %s" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
 
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip python-software-properties
 
+    DEBIAN_FRONTEND=noninteractive sudo add-apt-repository -y ppa:ondrej/php
+
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
 
     if [ ! -e "/etc/projectdata.json" ]; then
         echo "${GREEN}Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}${RESET}"

@@ -17,13 +17,14 @@ resource "google_compute_instance_group" "db" {
 
 }
 
-resource "google_compute_address" "static" {
-  name = "ipv4-address"
-}
+#resource "google_compute_address" "static" {
+  #name = "ipv4-address"
+#}
 
 ## Disk image depends on region and zone
 resource "google_compute_disk" "data1" {
-    name        = "test-disk"
+    count = 1
+    name        = "data-disk1"
     type        = "pd-ssd"
     zone = var.region_zone
     #auto_delete = true   deprecated ?
@@ -32,7 +33,8 @@ resource "google_compute_disk" "data1" {
 }
 
 resource "google_compute_disk" "data2" {
-    name        = "data-disk"
+    count = 1
+    name        = "data-disk2"
     type        = "pd-ssd"
     zone = var.region_zone
     #auto_delete = true   deprecated ?
@@ -75,11 +77,11 @@ resource "google_compute_instance" "db" {
     }
 
    attached_disk {
-     source      = google_compute_disk.data1.*.self_link[count.index]
+     source      = google_compute_disk.data1[count.index].self_link
    }
 
    attached_disk {
-     source      = google_compute_disk.data2.*.self_link[count.index]
+     source      = google_compute_disk.data2[count.index].self_link
    }
 
   network_interface {
