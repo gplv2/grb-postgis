@@ -17,10 +17,15 @@ resource "google_compute_instance_group" "db" {
 
 }
 
-# Disk image depends on region and zone
+resource "google_compute_address" "static" {
+  name = "ipv4-address"
+}
+
+## Disk image depends on region and zone
 resource "google_compute_disk" "data1" {
     name        = "test-disk"
     type        = "pd-ssd"
+    zone = var.region_zone
     #auto_delete = true   deprecated ?
     #scratch     = true
     size        = 100
@@ -29,12 +34,11 @@ resource "google_compute_disk" "data1" {
 resource "google_compute_disk" "data2" {
     name        = "data-disk"
     type        = "pd-ssd"
+    zone = var.region_zone
     #auto_delete = true   deprecated ?
     #scratch     = true
     size        = 100
 }
-
-# Disk image depends on region and zone
 
 # Disk image depends on region and zone
 resource "google_compute_instance" "db" {
@@ -61,13 +65,22 @@ resource "google_compute_instance" "db" {
     }
   }
 
-  attached_disk {
-    source      = google_compute_disk.data1.*.self_link[count.index]
-  }
+    connection {
+      # host = google_compute_instance.db.0.network_interface.0.network_ip
+      host = google_compute_instance.db[count.index].network_interface.0.access_config.0.nat_ip
+      type = "ssh"
+      user = "root"
+      private_key = file("${var.private_key_path}")
+      agent = false
+    }
 
-  attached_disk {
-    source      = google_compute_disk.data2.*.self_link[count.index]
-  }
+   attached_disk {
+     source      = google_compute_disk.data1.*.self_link[count.index]
+   }
+
+   attached_disk {
+     source      = google_compute_disk.data2.*.self_link[count.index]
+   }
 
   network_interface {
     network = "default"
@@ -83,26 +96,12 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = var.install_script_src_path
     destination = var.install_script_dest_path
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 # Copies the deployment keys over
   provisioner "file" {
     source = "keys/"
     destination = "/root/.ssh/"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 
@@ -110,24 +109,10 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = "scripts/shmsetup.sh"
     destination = "/usr/local/bin/shmsetup.sh"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 # prepare TF corner
   provisioner "remote-exec" {
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
     inline = [
       "mkdir -p /tmp/terraform",
       "mkdir -p /tmp/rcfiles"
@@ -137,52 +122,24 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = "terraform.tfvars"
     destination = "/tmp/terraform/terraform.tfvars"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 # Install all terraform runtime stuff
   provisioner "file" {
     source = var.credentials_file_path
     destination = "/tmp/terraform/terraform-${var.project_name}.json"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
   # all the shell files in /tmp
   provisioner "file" {
     source = "helpers/"
     destination = "/tmp/"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
   # all the resource files in /tmp/rcfiles
   provisioner "file" {
     source = "rcfiles/"
     destination = "/tmp/rcfiles/"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 # Create an empty file under etc to indicate the project this server belongs to
@@ -190,13 +147,6 @@ resource "google_compute_instance" "db" {
 # Piece of information in order to configure the python script that can call it all.
 
   provisioner "remote-exec" {
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
     inline = [
       "mkdir -p /tmp/skeys",
       "sudo echo ${var.project_name} > /etc/myproject",
@@ -205,13 +155,6 @@ resource "google_compute_instance" "db" {
   }
 
   provisioner "remote-exec" {
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
     inline = [
       "mkdir -p /tmp/configs"
     ]
@@ -220,24 +163,10 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = "configs/"
     destination = "/tmp/configs/"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
 # Copy cron snippets to nodes
   provisioner "remote-exec" {
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
     inline = [
       "mkdir -p /tmp/crons"
     ]
@@ -246,23 +175,9 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = "crons/"
     destination = "/tmp/crons/"
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
   }
 
   provisioner "remote-exec" {
-    connection {
-      host = google_compute_instance.db.0.network_interface.0.network_ip
-      type = "ssh"
-      user = "root"
-      private_key = file("${var.private_key_path}")
-      agent = false
-    }
     inline = [
       "chmod +x /tmp/mountformat.sh",
       "sudo /tmp/mountformat.sh",
