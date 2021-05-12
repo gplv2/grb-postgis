@@ -1,25 +1,40 @@
 # See https://cloud.google.com/compute/docs/load-balancing/network/example
 
-# Set up AWS access to environment
-provider "aws" {
-    access_key = "${var.aws_access_key}"
-    secret_key = "${var.aws_secret_key}"
-    region = "${var.aws_region}"
-}
-
 provider "google" {
-  region = "${var.region}"
-  project = "${var.project_name}"
-  credentials = "${file("${var.credentials_file_path}")}"
+  region = var.region
+  project = var.project_name
+  credentials = file("${var.credentials_file_path}")
 }
 
 # Set up db groups
 resource "google_compute_instance_group" "db" {
   name        = "terraform-db"
   description = "Terraform DB instance group"
-  zone = "${var.region_zone}"
-  instances = ["${google_compute_instance.db.*.self_link}"]
+  zone = var.region_zone
+  instances = ["${google_compute_instance.db.0.self_link}"]
+  #instances  = "${join(" ", ${google_compute_instance.db.*.self_link})}"
+  #instances   = join(" ", "${google_compute_instance.db.*.self_link}")
+
 }
+
+# Disk image depends on region and zone
+resource "google_compute_disk" "data1" {
+    name        = "test-disk"
+    type        = "pd-ssd"
+    #auto_delete = true   deprecated ?
+    #scratch     = true
+    size        = 100
+}
+
+resource "google_compute_disk" "data2" {
+    name        = "data-disk"
+    type        = "pd-ssd"
+    #auto_delete = true   deprecated ?
+    #scratch     = true
+    size        = 100
+}
+
+# Disk image depends on region and zone
 
 # Disk image depends on region and zone
 resource "google_compute_instance" "db" {
@@ -28,7 +43,7 @@ resource "google_compute_instance" "db" {
   name = "grb-db-${count.index}"
   machine_type = "n1-highmem-8"
 #   machine_type = "custom-6-15360"
-  zone = "${var.region_zone}"
+  zone = var.region_zone
 
   scheduling {
     preemptible          = false
@@ -38,23 +53,20 @@ resource "google_compute_instance" "db" {
 
 # "db-node", "www-node","http-server", "https-server"
   tags = ["db-node", "www-node"]
-  disk {
-    image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
-    size = 50
+
+  boot_disk {
+    initialize_params {
+        image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
+        size = 50
+    }
   }
 
-  disk {
-    type        = "pd-ssd"
-    auto_delete = true
-    scratch     = true
-    size        = 100
+  attached_disk {
+    source      = google_compute_disk.data1.*.self_link[count.index]
   }
 
-  disk {
-    type        = "pd-ssd"
-    auto_delete = true
-    scratch     = true
-    size        = 100
+  attached_disk {
+    source      = google_compute_disk.data2.*.self_link[count.index]
   }
 
   network_interface {
@@ -64,17 +76,18 @@ resource "google_compute_instance" "db" {
     }
   }
 
-  metadata {
+  metadata = {
     ssh-keys = "root:${file("${var.public_key_path}")}"
   }
 
   provisioner "file" {
-    source = "${var.install_script_src_path}"
-    destination = "${var.install_script_dest_path}"
+    source = var.install_script_src_path
+    destination = var.install_script_dest_path
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -84,9 +97,10 @@ resource "google_compute_instance" "db" {
     source = "keys/"
     destination = "/root/.ssh/"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -97,9 +111,10 @@ resource "google_compute_instance" "db" {
     source = "scripts/shmsetup.sh"
     destination = "/usr/local/bin/shmsetup.sh"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -107,9 +122,10 @@ resource "google_compute_instance" "db" {
 # prepare TF corner
   provisioner "remote-exec" {
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
     inline = [
@@ -122,21 +138,23 @@ resource "google_compute_instance" "db" {
     source = "terraform.tfvars"
     destination = "/tmp/terraform/terraform.tfvars"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
 
 # Install all terraform runtime stuff
   provisioner "file" {
-    source = "${var.credentials_file_path}"
+    source = var.credentials_file_path
     destination = "/tmp/terraform/terraform-${var.project_name}.json"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -146,9 +164,10 @@ resource "google_compute_instance" "db" {
     source = "helpers/"
     destination = "/tmp/"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -158,9 +177,10 @@ resource "google_compute_instance" "db" {
     source = "rcfiles/"
     destination = "/tmp/rcfiles/"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -171,9 +191,10 @@ resource "google_compute_instance" "db" {
 
   provisioner "remote-exec" {
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
     inline = [
@@ -185,9 +206,10 @@ resource "google_compute_instance" "db" {
 
   provisioner "remote-exec" {
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
     inline = [
@@ -199,9 +221,10 @@ resource "google_compute_instance" "db" {
     source = "configs/"
     destination = "/tmp/configs/"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
@@ -209,9 +232,10 @@ resource "google_compute_instance" "db" {
 # Copy cron snippets to nodes
   provisioner "remote-exec" {
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
     inline = [
@@ -223,18 +247,20 @@ resource "google_compute_instance" "db" {
     source = "crons/"
     destination = "/tmp/crons/"
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
   }
 
   provisioner "remote-exec" {
     connection {
+      host = google_compute_instance.db.0.network_interface.0.network_ip
       type = "ssh"
       user = "root"
-      private_key = "${file("${var.private_key_path}")}"
+      private_key = file("${var.private_key_path}")
       agent = false
     }
     inline = [
@@ -270,10 +296,10 @@ resource "google_compute_firewall" "default" {
 
 # this is the S3 remote TF state location, it's meant to be used when you
 # work in teams
-terraform {
-  backend "s3" {
-    bucket     = "my-tf-states"
-    key        = "api-project-37604919139/terraform.state"
-    region     = "eu-central-1"
-  }
-}
+#terraform {
+#  backend "s3" {
+#    bucket     = "my-tf-states"
+#    key        = "api-project-37604919139/terraform.state"
+#    region     = "eu-central-1"
+#  }
+#}

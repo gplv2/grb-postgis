@@ -11,31 +11,31 @@ variable "project_name" {
 }
 
 variable "aws_region" {
-  type        = "string"
+  type        = string
   description = "AWS region for S3 bucket"
   default     = ""
 }
 
 variable "aws_access_key" {
-  type        = "string"
+  type        = string
   description = "The access key for S3 bucket account"
   default     = ""
 }
 
 variable "aws_secret_key" {
-  type        = "string"
+  type        = string
   description = "The secrete key for S3 bucket account"
   default     = ""
 }
 
 variable "project_dns_name" {
-  type        = "string"
+  type        = string
   description = "The hosting zone our frontend hosts will be known on"
   default     = "byteless.net."
 }
 
 variable "project_a_record" {
-  type        = "string"
+  type        = string
   description = "The A record"
   default     = "grb"
 }
