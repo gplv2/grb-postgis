@@ -1,0 +1,57 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+<title>My Tileserver</title> 
+<meta charset="utf-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /> 
+ 
+<!-- Stylesheets -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" /> 
+<link rel="stylesheet" href="https://unpkg.com/leaflet.layerscontrol-minimap@1.0.18/control.layers.minimap.css" /> 
+<style> 
+  html { height: 100%; vertical-align: baseline; } 
+  body, #map { height: 100%; margin: 0; padding: 0; } 
+</style> 
+ 
+</head> 
+<body> 
+<!-- Map -->
+<div id="map" class="map"></div> 
+ 
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.layerscontrol-minimap@1.0.18/L.Control.Layers.Minimap.js"></script>
+<script> 
+var map = L.map('map', { center: [0, 0], zoom: 3, zoomControl: true }); 
+ 
+// LAYERS: // 
+ 
+var baselayers = { 
+  'My Layer': L.tileLayer('https://tiles.grbosm.site/my_layer/{z}/{x}/{y}.png', { 
+    minZoom: 3, 
+    maxZoom: 8 
+  }) 
+}; 
+ 
+var overlays = {}; 
+ 
+var layersControl = L.control.layers.minimap(baselayers, overlays, { 
+  collapsed: false 
+}).addTo(map); 
+ 
+// define a default layer from the above list of layers baselayers
+['My Layer'].addTo(map); 
+ 
+// resize layers control to fit into view. 
+function resizeLayerControl () { 
+  var layerControlHeight = document.body.clientHeight - (10 + 50); 
+  var layerControl = document.getElementsByClassName('leaflet-control-layers-expanded')[0]; 
+  layerControl.style.overflowY = 'auto'; 
+  layerControl.style.maxHeight = layerControlHeight + 'px';
+} 
+ 
+map.on('resize', resizeLayerControl); resizeLayerControl(); 
+</script> 
+</body> 
+</html>

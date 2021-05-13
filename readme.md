@@ -7,6 +7,10 @@
  - build a postgis db
  - export the data
 
+## variation
+ - setup tile server (separate branch)
+ - setup GRB + 3D GRB DB
+
 # assumptions
  - google cloud, might support others too in the future
 
@@ -167,4 +171,7 @@ Watch the magic.  The provisioner script installation is set in bash debug mode,
 Currently, we have:
 
  - Build a fresh postgis DB for GRB data usage
+ - Build a 3D GRB sourced tables for joining against GRB db
+ - tileserver branch : create a tileserver from scratch serving a combo of this data.
+ - Loads OSM data in separate DB for data analysis and crossreferencing
 
