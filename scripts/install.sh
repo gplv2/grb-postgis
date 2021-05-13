@@ -470,19 +470,19 @@ function prepare_source_data {
     echo "${GREEN}downloading GRB extracts (mirror)${RESET}"
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
 
     echo "${GREEN}downloading GRB 3D extracts (mirror)${RESET}"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_04000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_30000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_20001B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_40000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_70000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet http://debian.byte-consult.be/grb/3D_GRB_10000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_04000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_70000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_10000B500_Shapefile.zip"
 
     echo "${GREEN}Done${RESET}"
 
@@ -640,7 +640,7 @@ function install_os_packages {
 
     DEBIAN_FRONTEND=noninteractive sudo add-apt-repository -y ppa:ondrej/php
 
-    DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -f -o Dpkg::Use-Pty=0
+    DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o Dpkg::Use-Pty=0
 
     if [ ! -e "/etc/projectdata.json" ]; then
         echo "${GREEN}Provisioning GCE(vm): ${RES_ARRAY[1]} / ${RES_ARRAY[2]}${RESET}"
