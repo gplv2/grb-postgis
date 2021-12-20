@@ -27,7 +27,7 @@ fi
 
 # -o Dpkg::Options::=--force-confnew install
 
-if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+if [ "$DISTRIB_RELEASE" = "18.04" ]; then
     echo "Install $DISTRIB_RELEASE packages ..."
     apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" postgresql pkg-config pkgconf g++ make memcached build-essential python-software-properties memcached curl git cmake > /dev/null
     apt-get install -y -o Dpkg::Options::="--force-confnew" php-msgpack > /dev/null

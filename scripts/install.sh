@@ -636,7 +636,7 @@ function install_os_packages {
 
     echo "Preparing for ubuntu %s - %s" "$DISTRIB_RELEASE" "$DISTRIB_CODENAME"
 
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip python-software-properties
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 zip unzip htop aeson-pretty ccze python3 python3-crypto python3-libcloud jq git rsync dsh monit tree monit postgresql-client-9.5 python-crypto python-libcloud ntpdate redis-server fuse-zip software-properties-common
 
     DEBIAN_FRONTEND=noninteractive sudo add-apt-repository -y ppa:ondrej/php
 
@@ -671,9 +671,9 @@ function install_selected_packages {
     echo "${GREEN}Install specific packages ...${RESET}"
 
     if [ "${RES_ARRAY[1]}" = "www" ]; then
-        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
-            DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify php-curl
+            DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify php-curl
 
             if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
                 touch /home/${DEPLOY_USER}/.hushlogin
@@ -681,7 +681,7 @@ function install_selected_packages {
             fi
         fi
 
-        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             if [ ! -e "/usr/local/bin/composer" ]; then
                 echo "Updating global Composer ..."
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -691,9 +691,9 @@ function install_selected_packages {
 
 
     if [ "${RES_ARRAY[1]}" = "db" ]; then
-        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
-            DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev python3-software-properties php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis php-curl
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis php-curl
 
             if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
                 touch /home/${DEPLOY_USER}/.hushlogin
@@ -701,7 +701,7 @@ function install_selected_packages {
             fi
         fi
 
-        if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+        if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             if [ ! -e "/usr/local/bin/composer" ]; then
                 echo "Updating global Composer ..."
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -720,10 +720,10 @@ function install_configure_postgres {
             /usr/local/bin/shmsetup.sh >> /etc/sysctl.conf
 
             echo "${GREEN}Installing postgres DB server ...${RESET}"
-            # DISTRIB_RELEASE=16.04
-            if [ "$DISTRIB_RELEASE" = "16.04" ]; then
+            # DISTRIB_RELEASE=18.04
+            if [ "$DISTRIB_RELEASE" = "18.04" ]; then
                 echo "Install $DISTRIB_RELEASE packages ..."
-                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-9.5-postgis-2.2 libpq-dev libproj-dev python-geolinks python-gdal
+                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-10-postgis-2.4 libpq-dev libproj-dev python-geolinks python-gdal
                 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
             fi
 
