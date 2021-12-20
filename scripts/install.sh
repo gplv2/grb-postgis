@@ -728,9 +728,9 @@ function install_configure_postgres {
             fi
 
             # enable listen
-            if [ -e "/etc/postgresql/9.5/main/postgresql.conf" ]; then
+            if [ -e "/etc/postgresql/10/main/postgresql.conf" ]; then
                 echo "Enable listening on all interfaces"
-                sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
+                sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/10/main/postgresql.conf
                 echo "Configuring shared buffers"
                 page_size=`getconf PAGE_SIZE`
                 phys_pages=`getconf _PHYS_PAGES`
@@ -742,24 +742,24 @@ function install_configure_postgres {
                     shmmax=`expr $shmall \* $page_size`
                     echo "Maximum shared segment size in bytes: ${shmmax}"
                     # converting this to a safe GB value for postgres
-                    sed -i -r "s|#?effective_cache_size =".*"$|effective_cache_size = ${PGEFFECTIVE}MB|" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i -r "s|#?effective_cache_size =".*"$|effective_cache_size = ${PGEFFECTIVE}MB|" /etc/postgresql/10/main/postgresql.conf
 
                     postgres_shared=`expr $shmmax / 1024 / 1024 / 1000`
                     echo "Postgres shared buffer size in GB: ${postgres_shared}"
                     echo "Configuring memory settings"
-                    sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#work_mem = 4MB/work_mem = 8MB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 2048MB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#max_files_per_process = 1000/max_files_per_process = 10000/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#fsync = on/fsync = off/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#synchronous_commit = on/synchronous_commit = off/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#wal_level = minimal/wal_level = minimal/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#temp_buffers = 8MB/temp_buffers = 32MB/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/shared_buffers = 128MB/shared_buffers = ${postgres_shared}GB/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#work_mem = 4MB/work_mem = 8MB/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#maintenance_work_mem = 64MB/maintenance_work_mem = 2048MB/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#max_files_per_process = 1000/max_files_per_process = 10000/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#full_page_writes = on/full_page_writes = on/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#fsync = on/fsync = off/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#synchronous_commit = on/synchronous_commit = off/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#wal_level = minimal/wal_level = minimal/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#temp_buffers = 8MB/temp_buffers = 32MB/" /etc/postgresql/10/main/postgresql.conf
                     echo "Configuring checkpoint settings"
-                    sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/9.5/main/postgresql.conf
-                    sed -i "s/#checkpoint_completion_target = 0.5/checkpoint_completion_target = 0.7/" /etc/postgresql/9.5/main/postgresql.conf
+                    sed -i "s/#checkpoint_timeout = 5min/checkpoint_timeout = 20min/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#max_wal_size = 1GB/max_wal_size = 2GB/" /etc/postgresql/10/main/postgresql.conf
+                    sed -i "s/#checkpoint_completion_target = 0.5/checkpoint_completion_target = 0.7/" /etc/postgresql/10/main/postgresql.conf
                 fi
                 echo "Done with changing postgresql settings, we need to restart postgres for them to take effect"
             fi
@@ -771,11 +771,11 @@ function install_configure_postgres {
                 SUBNET="10.0.1.0/24"
             fi
             # set permissions
-            if [ -e "/etc/postgresql/9.5/main/pg_hba.conf" ]; then
-                #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
-                #sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/9.5/main/postgresql.conf
-                sed -i "s/host    all             all             127.0.0.1\/32            md5/#host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/9.5/main/pg_hba.conf
-                echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/9.5/main/pg_hba.conf
+            if [ -e "/etc/postgresql/10/main/pg_hba.conf" ]; then
+                #echo "host    all             all             $SUBNET           trust" >> /etc/postgresql/10/main/pg_hba.conf
+                #sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/10/main/postgresql.conf
+                sed -i "s/host    all             all             127.0.0.1\/32            md5/#host    all             all             127.0.0.1\/32            md5/" /etc/postgresql/10/main/pg_hba.conf
+                echo "host    all             all             127.0.0.1/32           trust" >> /etc/postgresql/10/main/pg_hba.conf
             fi
 
             echo "Welcome to Resource ${RESOURCE_INDEX} - ${HOSTNAME} (${IP})"
