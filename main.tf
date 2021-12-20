@@ -187,6 +187,7 @@ resource "google_compute_instance" "db" {
 
   provisioner "remote-exec" {
     inline = [
+      "chmod +x /usr/local/bin/safe_format_and_mount.sh",
       "chmod +x /tmp/mountformat.sh",
       "sudo /tmp/mountformat.sh",
       "chmod +x ${var.install_script_dest_path}",
