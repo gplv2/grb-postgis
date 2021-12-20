@@ -62,7 +62,7 @@ resource "google_compute_instance" "db" {
 
   boot_disk {
     initialize_params {
-        image = "ubuntu-os-cloud/ubuntu-1604-xenial-v20160907a"
+        image = "ubuntu-os-cloud/ubuntu-1804-bionic-v20211214"
         size = 50
     }
   }
