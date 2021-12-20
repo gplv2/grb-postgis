@@ -173,8 +173,8 @@ fi
 
 # datatype fixes
 cat > /tmp/datatype.tags.sql << EOF
-ALTER ${TABLEPREFIX}_polygon alter column "source:geometry:oidn" TYPE INTEGER  USING ("source:geometry:oidn"::integer) ;
-ALTER ${TABLEPREFIX}_polygon alter column "source:geometry:uidn" TYPE INTEGER  USING ("source:geometry:uidn"::integer) ;
+ALTER TABLE ${TABLEPREFIX}_polygon alter column "source:geometry:oidn" TYPE INTEGER  USING ("source:geometry:oidn"::integer) ;
+ALTER TABLE ${TABLEPREFIX}_polygon alter column "source:geometry:uidn" TYPE INTEGER  USING ("source:geometry:uidn"::integer) ;
 EOF
 
 cat /tmp/datatype.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
