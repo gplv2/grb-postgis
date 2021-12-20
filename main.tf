@@ -117,6 +117,7 @@ resource "google_compute_instance" "db" {
   provisioner "file" {
     source = "scripts/safe_format_and_mount.sh"
     destination = "/usr/local/bin/safe_format_and_mount.sh"
+  }
 
 # prepare TF corner
   provisioner "remote-exec" {
