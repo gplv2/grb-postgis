@@ -673,7 +673,7 @@ function install_selected_packages {
     if [ "${RES_ARRAY[1]}" = "www" ]; then
         if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
-            DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify php-curl
+            DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql node-uglify php-curl
 
             if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
                 touch /home/${DEPLOY_USER}/.hushlogin
@@ -693,7 +693,7 @@ function install_selected_packages {
     if [ "${RES_ARRAY[1]}" = "db" ]; then
         if [ "$DISTRIB_RELEASE" = "18.04" ]; then
             echo "Install $DISTRIB_RELEASE packages ..."
-            DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkgconf pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis php-curl
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 pkg-config g++ make memcached libmemcached-dev build-essential python3-software-properties curl cmake openssl libssl-dev phpunit php7.4 php-dev php-pear pkg-config pkg-php-tools g++ make memcached libmemcached-dev php-memcached php-memcache php-cli php-mbstring cmake php-pgsql osmosis php-curl
 
             if [ ! -e "/home/${DEPLOY_USER}/.hushlogin" ]; then
                 touch /home/${DEPLOY_USER}/.hushlogin
@@ -723,7 +723,7 @@ function install_configure_postgres {
             # DISTRIB_RELEASE=18.04
             if [ "$DISTRIB_RELEASE" = "18.04" ]; then
                 echo "Install $DISTRIB_RELEASE packages ..."
-                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config pkgconf g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-10-postgis-2.4 libpq-dev libproj-dev python-geolinks python-gdal
+                DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 postgresql pkg-config g++ make memcached libmemcached-dev build-essential python3-software-properties php-memcached php-memcache libmsgpack-dev curl php-cli php-mbstring cmake php-pgsql pgbouncer postgresql-contrib postgis postgresql-10-postgis-2.4 libpq-dev libproj-dev python-geolinks python-gdal
                 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 php-msgpack
             fi
 
