@@ -113,6 +113,11 @@ resource "google_compute_instance" "db" {
     destination = "/usr/local/bin/shmsetup.sh"
   }
 
+# installs google deprecated script to mounts disk without changing too much code (they removed it)
+  provisioner "file" {
+    source = "scripts/safe_format_and_mount.sh"
+    destination = "/usr/local/bin/safe_format_and_mount.sh"
+
 # prepare TF corner
   provisioner "remote-exec" {
     inline = [

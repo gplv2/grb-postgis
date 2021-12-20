@@ -11,14 +11,14 @@
 echo "Setting up disks"
 
 mkdir -p /datadisk1
-/usr/share/google/safe_format_and_mount -m "mkfs.ext4 -m 0 -F -E stripe-width=256,lazy_itable_init=0,lazy_journal_init=0,discard" /dev/sdb /datadisk1
+/usr/local/bin/safe_format_and_mount -m "mkfs.ext4 -m 0 -F -E stripe-width=256,lazy_itable_init=0,lazy_journal_init=0,discard" /dev/sdb /datadisk1
 umount /datadisk1
 UUID=`sudo blkid -s UUID -o value /dev/sdb`
 sh -c "echo \"UUID=${UUID}   /datadisk1   ext4   defaults,discard,nobarrier,nofail   0 2\" >> /etc/fstab"
 
 # disk 2
 mkdir -p /datadisk2
-/usr/share/google/safe_format_and_mount -m "mkfs.ext4 -m 0 -F -E stripe-width=256,lazy_itable_init=0,lazy_journal_init=0,discard" /dev/sdc /datadisk2
+/usr/local/bin/safe_format_and_mount -m "mkfs.ext4 -m 0 -F -E stripe-width=256,lazy_itable_init=0,lazy_journal_init=0,discard" /dev/sdc /datadisk2
 umount /datadisk2
 UUID=`sudo blkid -s UUID -o value /dev/sdc`
 
