@@ -75,7 +75,7 @@ function install_shapefiles {
 
 function install_tools {
     echo "${GREEN}Installing tools${RESET}"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev liblz4-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev liblz4-dev libboost-tools-dev libboost-thread1.65-dev magics++
 
     echo "Building protozero library"
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
@@ -90,7 +90,8 @@ function install_tools {
     cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && tar -xzvf gdal-${GDAL_VERSION}.tar.gz && cd gdal-${GDAL_VERSION} && ./configure  && make -j ${THREADS} && make install && ldconfig
 
     echo "Building osm2pgsql"
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && git checkout 7865cd71353c064e7752def0d1835b5f63229379
+    cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
     echo "Building libosmium standalone library and osmium tool"
     cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j ${CORES} && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
@@ -334,7 +335,7 @@ function load_osm_data {
     echo "${GREEN}Renumbering sorted file${RESET}"
     su - ${DEPLOY_USER} -c "cat /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm  | osm-renumber.pl > /datadisk2/out/belgium-latest-nobuildings-renum.osm"
 
-    echo "${GREEN}Sorting OSM file${RESET}"
+    echo "${GREEN}Sorting renumbered OSM file${RESET}"
     su - ${DEPLOY_USER} -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings-renum.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm"
 
     # cat /datadisk2/out/belgium-latest-nobuildings-renumbered.osm  | ./osm-renumber.pl > /datadisk1/scratch/belgium-latest-nobuildings-renum.osm
@@ -348,6 +349,7 @@ function load_osm_data {
     else
     	sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
     fi	
+    echo "${GREEN}Done - Loading OSM data${RESET}"
 }
 
 function create_osm_indexes {
