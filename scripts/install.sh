@@ -91,8 +91,13 @@ function install_tools {
 
     echo "Building osm2pgsql"
     #cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && git checkout 7865cd71353c064e7752def0d1835b5f63229379
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && git checkout a8421fd10e9854744456d29ef74131e67368b3e8
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql
+
+    # temp fix for bug
+    sed -i "s/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX)/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX C)/" /usr/local/src/osm2pgsql/CMakeLists.txt
+
     cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
+
     echo "Building libosmium standalone library and osmium tool"
     cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j ${CORES} && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
