@@ -54,16 +54,18 @@ do
 
  echo "${GREEN}OGR2OGR${RESET}"
  echo "======="
- echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
+ echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_${dirname}_parsed" ${dirname}/${filename}.shp -overwrite
 
- /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
+ /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_${dirname}_parsed" ${dirname}/${filename}.shp -overwrite
 
  echo ""
  echo "${GREEN}OGR2OSM${RESET}"
  echo "======="
- rm -f "${filename}.osm"
- echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
- /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
+ rm -f "${filename}_${dirname}.osm"
+ echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_${dirname}_parsed/${filename}.shp"
+ /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_${dirname}_parsed/${filename}.shp"
+ echo "${GREEN}Rename ${filename}.osm to province version ${filename}_${dirname}.osm ${RESET}"
+ mv ${filename}.osm ${filename}_${dirname}.osm
  echo ""
 
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
@@ -73,9 +75,9 @@ do
     then
     echo "${GREEN}running Picc/gbg sed${RESET}"
     # mapping the entities to the OSM equivalent
- 	sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:oidn/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/ANE/yes/g;s/tag k=\"CODE_WALTO\"\sv=\"([A-Z])\w+\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}.osm"
+ 	sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:oidn/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/ANE/yes/g;s/tag k=\"CODE_WALTO\"\sv=\"([A-Z])\w+\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}_${dirname}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
- 	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
+ 	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}_${dirname}.osm"
  fi
 
 # 	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Knw"/g' -i "${filename}.osm"
@@ -101,11 +103,11 @@ echo "${GREEM}OSMOSIS MERGE${RESET}"
 echo "============="
 
 osmosis  \
---rx NAMUR.osm  \
---rx BRABANT.osm  \
---rx LIEGE.osm  \
---rx HAINAUT.osm  \
---rx LUXEMBOURG.osm  \
+--rx CONSTR_BATIEMPRISE_NAMUR.osm  \
+--rx CONSTR_BATIEMPRISE_BRABANT.osm  \
+--rx CONSTR_BATIEMPRISE_LIEGE.osm  \
+--rx CONSTR_BATIEMPRISE_HAINAUT.osm  \
+--rx CONSTR_BATIEMPRISE_LUXEMBOURG.osm  \
 --merge  \
 --merge  \
 --merge  \
