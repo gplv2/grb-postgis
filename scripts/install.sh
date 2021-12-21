@@ -1152,15 +1152,15 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_grb_sources
     create_bash_alias
     make_grb_dirs
-    prepare_source_data
+    #prepare_source_data
     prepare_picc_source_data
     install_compile_packages
     install_carto_compiler
     install_tools
     load_osm_data
-    process_source_data
+    #process_source_data
     process_source_picc_data
-    process_3d_source_data
+    #process_3d_source_data
 
     if [ $TILESERVER == 'yes' ] ; then
         # tileserver add-ons

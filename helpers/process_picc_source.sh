@@ -73,7 +73,7 @@ do
     then
     echo "${GREEN}running Picc/gbg sed${RESET}"
     # mapping the entities to the OSM equivalent
- 	sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:ref/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/ANE/yes/g;s/tag k=\"CODE_WALTO\"\sv=\"([A-Z])\w+\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}.osm"
+ 	sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:oidn/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/ANE/yes/g;s/tag k=\"CODE_WALTO\"\sv=\"([A-Z])\w+\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
  	sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
  fi
@@ -170,7 +170,7 @@ fi
 echo "${GREEN}Creating additional indexes...${RESET}"
 
 echo 'CREATE INDEX planet_osm_source_index_oidn ON planet_osm_polygon USING btree ("source:geometry:oidn" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
-echo 'CREATE INDEX planet_osm_source_index_uidn ON planet_osm_polygon USING btree ("source:geometry:uidn" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
+#echo 'CREATE INDEX planet_osm_source_index_uidn ON planet_osm_polygon USING btree ("source:geometry:uidn" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 echo 'CREATE INDEX planet_osm_source_index_ref ON planet_osm_polygon USING btree ("source:geometry:ref" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d${DBDATA} -h 127.0.0.1
 #echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
@@ -262,7 +262,7 @@ fi
 cd ~
 
 # address directly in the database using DBF database file, the tool will take care of all anomalities encountered (knw/Gbg)
-php grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
+#php grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
 
 if [ $? -eq 0 ]
 then
@@ -274,11 +274,11 @@ fi
 
 echo "unmounting zip files"
 # GRB
-fusermount -u /usr/local/src/grb/GRBgis_10000
-fusermount -u /usr/local/src/grb/GRBgis_20001
-fusermount -u /usr/local/src/grb/GRBgis_30000
-fusermount -u /usr/local/src/grb/GRBgis_40000
-fusermount -u /usr/local/src/grb/GRBgis_70000
+fusermount -u /usr/local/src/grb/NAMUR
+fusermount -u /usr/local/src/grb/LIEGE
+fusermount -u /usr/local/src/grb/BRABANT
+fusermount -u /usr/local/src/grb/HAINAUT
+fusermount -u /usr/local/src/grb/LUXEMBOURG
 
 echo ""
 echo "${GREEN}Flush cache${RESET}"
