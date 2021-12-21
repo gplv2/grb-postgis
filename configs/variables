@@ -1,0 +1,49 @@
+#!/bin/bash -e
+#ex: echo "${RED}red text ${GREEN}green text${RESET}"
+
+# count cores
+CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
+THREADS=$((${CORES}-1))
+DOUBLETHREADS=$((${CORES}*2))
+
+FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
+CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
+PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
+
+# GDAL_VERSION=2.2.4 (older)
+GDAL_VERSION=2.4.2
+PROJ_VERSION=6.1.1
+
+TILESERVER=no
+
+CLOUD=google
+
+PROJECT_NAME=grbapi
+PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
+DB=grb_api
+USER=grb-data
+DEPLOY_USER=glenn
+PGPASS=/home/${DEPLOY_USER}/.pgpass
+PGRC=/home/${DEPLOY_USER}/.psqlrc
+
+# ini file for events/items DB access
+DATA_DB=grb_temp
+PASSWORD=str0ngDBp4ssw0rd
+DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
+
+DEBIAN_FRONTEND=noninteractive
+
+#GRB_RELEASE_DATE=20181204
+#GRB_RELEASE_DATE=20190815
+#GRB_RELEASE_DATE=20210512
+GRB_RELEASE_DATE=20211216
+
+# use fuse mount to save unzip space
+SAVESPACE=yes
+
+# Screen colors using tput
+
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+

@@ -1,14 +1,23 @@
-#!/bin/bash
+#!/bin/bash -e
+
+set -o allexport
+source /tmp/configs/variables
+set +o allexport
+
+OGRIDFILE=ogr2osm.id
+
+DBUSER=grb-data
+DBDATA=grb_api
 
 cd /usr/local/src/grb
 
 # This script has been converted from the beta development site
 
-# We need to keep track of the ogr2osm id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
+# We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
 # default value is zero but the file does need to exists if you use the option
-#echo "15715818" > ogr2osm.id
+#echo "15715818" > OGRIDFILE
 echo "Reset counter $file"
-echo "0" > ogr2osm.id
+echo "0" > ${OGRIDFILE}
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space
 # fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
@@ -32,34 +41,34 @@ do
  entity=${filename:0:3} # Gba/Gbg
 
  echo $dirname
- echo "Cleanup parsed"
+ echo "${GREEN}Cleanup parsed${RESET}"
  echo "=============="
  rm -Rf "${filename}_parsed"
- echo "OGR FILE INFO"
+ echo "${GREEN}OGR FILE INFO${RESET}"
  echo "============="
- /usr/local/bin/ogrinfo -al -so ${dirname}/${filename}.shp
+ /usr/local/bin/ogrinfo -al -ro -so ${dirname}/${filename}.shp
  echo ""
 
- echo "OGR2OGR"
+ echo "${GREEN}OGR2OGR${RESET}"
  echo "======="
  echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  echo ""
- echo "OGR2OSM"
+ echo "${GREEN}OGR2OSM${RESET}"
  echo "======="
  rm -f "${filename}.osm"
- echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
- /usr/local/bin/ogr2osm/ogr2osm.py --idfile=ogr2osm.id --positive-id --saveid=ogr2osm.id "${filename}_parsed/${filename}.shp"
+ echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
+ /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
  echo ""
 
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
 
 # GBG
- if [ $entity == 'Gbg' ] 
+ if [ $entity == 'Gbg' ]
     then
-    echo "running gbg sed\n"
+    echo "${GREEN}running gbg sed${RESET}"
     # mapping the entities to the OSM equivalent
  	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gbg"/g' -i "${filename}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
@@ -68,9 +77,9 @@ do
 
 # we problably need to run the second sed for the first line only like this sed -i '1!b;s/test/blah/' file
 # KNW
- if [ $entity == 'Knw' ] 
+ if [ $entity == 'Knw' ]
     then
-    echo "running gbg sed\n"
+    echo "${GREEN}running gbg sed${RESET}"
     # mapping the entities to the OSM equivalent
  	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/hoofdgebouw/house/g;s/bijgebouw/yes/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Knw"/g' -i "${filename}.osm"
     # this line is needed for osmosis to accept the OSM file so we need to add it to the osm file using sed to replace
@@ -78,9 +87,9 @@ do
  fi
 
 # GBA
- if [ $entity == 'Gba' ] 
+ if [ $entity == 'Gba' ]
     then
-    echo "running gba sed\n"
+    echo "${GREEN}running gba sed${RESET}"
     # mapping the entities to the OSM equivalent
  	sed -e 's/LBLTYPE/building/g;s/OIDN/source:geometry:oidn/g;s/UIDN/source:geometry:uidn/g;s/OPNDATUM/source:geometry:date/g;s/\"afdak\"/\"roof\"/g;s/\"ingezonken garagetoegang\"/\"garage3\"/g;s/\"verheven garagetoegang\"/\"garage4\"/g;s/tag k=\"TYPE\"\sv=\"[0-9]\+\"/tag k="source:geometry:entity" v="Gba"/g' -i "${filename}.osm"
     # this line is needed for osmosis to accept the OSM file we crated  so we need to add it to the osm file using sed to replace
@@ -101,13 +110,13 @@ done
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully parsed GRB sources"
+  echo "${GREEN}Successfully parsed GRB sources${RESET}"
 else
-  echo "Could not process sources file" >&2
+  echo "${RED}Could not process sources file${RESET}" >&2
   exit 1
 fi
 
-echo "OSMOSIS MERGE"
+echo "${GREEM}OSMOSIS MERGE${RESET}"
 echo "============="
 
 osmosis  \
@@ -144,11 +153,11 @@ osmosis  \
 
 if [ $? -eq 0 ]
 then
-    echo "Successfully merged GRB sources"
+    echo "${GREEN}Successfully merged GRB sources${RESET}"
     #echo "Cleaning up diskspace - removing zip files"
     #cd /usr/local/src/grb && rm -f *.zip
-    echo "Cleaning up diskspace - removing parsed files"
-    rm -f Gbg10000B500.osm 
+    echo "${GREEN}Cleaning up diskspace - removing parsed files${RESET}"
+    rm -f Gbg10000B500.osm
     rm -f Gbg20001B500.osm
     rm -f Gbg30000B500.osm
     rm -f Gbg40000B500.osm
@@ -164,47 +173,71 @@ then
     rm -f Knw40000B500.osm
     rm -f Knw70000B500.osm
 else
-  echo "Could not merge sources file" >&2
+  echo "${RED}Could not merge sources file${RESET}" >&2
   exit 1
 fi
 
 # postgresql work
 
- echo ""
- echo "IMPORT"
- echo "======"
+echo ""
+echo "${GREEN}IMPORT${RESET}"
+echo "======"
 
-# /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --create -l --cache 8000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace
+if [ $TILESERVER == 'yes' ] ; then
+    if [ -e "/datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm" ]; then
+        #echo "${GREEN}Renumbering OSM data${RESET}"
+        #osmosis --rx /datadisk2/out/all_merged.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk1/scratch/joined.osm
+        echo "${GREEN}Renumbering GRB OSM file${RESET}"
+        cat /datadisk2/out/all_merged.osm | osm-renumber.pl > /datadisk1/scratch/all_merged_renumbered.osm
+
+        echo "${GREEN}Sorting GRB OSM file${RESET}"
+        osmium sort -v --progress /datadisk1/scratch/all_merged_renumbered.osm -o /datadisk1/scratch/all_merged_renum_v2.osm
+
+        echo "${GREEN}Merging GRB and OSM data${RESET}"
+        osmosis --rx /datadisk1/scratch/all_merged_renum_v2.osm --rx /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm --merge --wx /datadisk2/out/joined.osm
+
+        # /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d ${DBDATA} -U ${DBUSER} /datadisk2/out/all_merged.osm -H grb-db-0
+        echo "${GREEN}Loading merged dataset in db: ${DBDATA}${RESET}"
+        /usr/local/bin/osm2pgsql --slim --drop --create -m --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/be-carto/openstreetmap-carto.merge.style --tag-transform-script /usr/local/src/be-carto/openstreetmap-carto.merge.lua --multi-geometry -d ${DBDATA} -U ${DBUSER} -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/joined.osm
+    else
+        echo "${RED}Could not find OSM filtered source file${RESET}" >&2
+        exit 1
+    fi
+else
+        /usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --multi-geometry --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d ${DBDATA} -U ${DBUSER} -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace /datadisk2/out/all_merged.osm
+
+fi
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully imported processed sources into PGSQL"
+    echo "${GREEN}Successfully imported processed sources into PGSQL${RESET}"
 else
-  echo "Could not import merged source files" >&2
-  exit 1
+    echo "${GREEN}Could not import merged source files${RESET}" >&2
+    exit 1
 fi
 
-echo "Creating additional indexes..."
+echo "${GREEN}Creating additional indexes...${RESET}"
 
-echo 'CREATE INDEX planet_osm_source_index_p ON planet_osm_polygon USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
-echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
-#echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
-#echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb
+echo 'CREATE INDEX planet_osm_source_index_oidn ON planet_osm_polygon USING btree ("source:geometry:oidn" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
+echo 'CREATE INDEX planet_osm_source_index_uidn ON planet_osm_polygon USING btree ("source:geometry:uidn" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
+echo 'CREATE INDEX planet_osm_source_index_ref ON planet_osm_polygon USING btree ("source:geometry:ref" ) TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
+echo 'CREATE INDEX planet_osm_source_ent_p ON planet_osm_polygon USING btree ("source:geometry:entity" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d${DBDATA} -h 127.0.0.1
+#echo 'CREATE INDEX planet_osm_source_index_o ON planet_osm_point USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
+#echo 'CREATE INDEX planet_osm_source_index_n ON planet_osm_nodes USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
+#echo 'CREATE INDEX planet_osm_source_index_l ON planet_osm_line USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
+#echo 'CREATE INDEX planet_osm_source_index_r ON planet_osm_rels USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
+#echo 'CREATE INDEX planet_osm_source_index_w ON planet_osm_ways USING btree ("source:geometry:oidn" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d grb
 
 # setup source tag for all objects imported
-echo "UPDATE planet_osm_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h grb-db-0
+# echo "UPDATE planet_osm_polygon SET "source" = 'GRB' WHERE building IS NOT NULL;" | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 
 # more indexes
-echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U grb-data grb_api -h grb-db-0
+echo 'CREATE INDEX planet_osm_src_index_p ON planet_osm_polygon USING btree ("source" COLLATE pg_catalog."default") TABLESPACE indexspace;' | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
-echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h grb-db-0
+echo "UPDATE planet_osm_polygon set highway='steps', building='' where building='trap';" | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 
-echo "creating additional indexes..."
+echo "${GREEN}creating additional indexes...${RESET}"
 
 cat > /tmp/create.indexes.sql << EOF
 CREATE INDEX idx_planet_osm_line_nobridge ON planet_osm_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
@@ -217,13 +250,13 @@ CREATE INDEX idx_pop_b_null ON planet_osm_polygon USING gist (way) TABLESPACE in
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h grb-db-0
+cat /tmp/create.indexes.sql | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully created indexes/updates"
+  echo "${GREEN}Successfully created indexes/updates${RESET}"
 else
-  echo "Could not execute indexing/updates" >&2
+  echo "${RED}Could not execute indexing/updates${RESET}" >&2
   exit 1
 fi
 
@@ -245,13 +278,13 @@ UPDATE planet_osm_polygon SET man_made='weir', fixme='Waterbouwkundig constructi
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/update.tags.sql | psql -U grb-data grb_api -h grb-db-0
+cat /tmp/update.tags.sql | psql -U ${DBUSER} -d ${DBDATA} -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully Updated/mapped tags to their OSM counterparts"
+  echo "${GREEN}Successfully Updated/mapped tags to their OSM counterparts${RESET}"
 else
-  echo "Could not execute deletes/updates" >&2
+  echo "${RED}Could not execute deletes/updates${RESET}" >&2
   exit 1
 fi
 
@@ -278,35 +311,27 @@ fi
 cd ~
 
 # address directly in the database using DBF database file, the tool will take care of all anomalities encountered (knw/Gbg)
-grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
+php grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
 
 if [ $? -eq 0 ]
 then
-  echo "Successfully imported addresses into DB"
+  echo "${GREEN}Successfully imported addresses into DB${RESET}"
 else
-  echo "Could not address into DB" >&2
+  echo "${RED}Could not address into DB${RESET}" >&2
   exit 1
 fi
 
 echo "unmounting zip files"
 # GRB
-fusermount -u /usr/local/grb/GRBgis_10000
-fusermount -u /usr/local/grb/GRBgis_20001
-fusermount -u /usr/local/grb/GRBgis_30000
-fusermount -u /usr/local/grb/GRBgis_40000
-fusermount -u /usr/local/grb/GRBgis_70000
-
-# 3D GRB
-fusermount -u /usr/local/grb/3D_GRB_04000
-fusermount -u /usr/local/grb/3D_GRB_30000
-fusermount -u /usr/local/grb/3D_GRB_20001
-fusermount -u /usr/local/grb/3D_GRB_40000
-fusermount -u /usr/local/grb/3D_GRB_70000
-fusermount -u /usr/local/grb/3D_GRB_10000
+fusermount -u /usr/local/src/grb/GRBgis_10000
+fusermount -u /usr/local/src/grb/GRBgis_20001
+fusermount -u /usr/local/src/grb/GRBgis_30000
+fusermount -u /usr/local/src/grb/GRBgis_40000
+fusermount -u /usr/local/src/grb/GRBgis_70000
 
 echo ""
-echo "Flush cache"
-echo "==========="
+echo "${GREEN}Flush cache${RESET}"
+echo ""
  # flush redis cache
-echo "flushall" | redis-cli 
+echo "flushall" | redis-cli
 
