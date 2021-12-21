@@ -20,15 +20,20 @@ CLOUD=google
 
 PROJECT_NAME=grbapi
 PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
-DB=grb_api
-USER=grb-data
 DEPLOY_USER=glenn
 PGPASS=/home/${DEPLOY_USER}/.pgpass
 PGRC=/home/${DEPLOY_USER}/.psqlrc
 
+DB=grb_api
+USER=grb-data
+
+DBUSER=${USER}
+DBDATA=${DB}
+
 # ini file for events/items DB access
 DATA_DB=grb_temp
 PASSWORD=str0ngDBp4ssw0rd
+
 DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
 
 DEBIAN_FRONTEND=noninteractive

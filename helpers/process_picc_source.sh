@@ -6,9 +6,6 @@ set +o allexport
 
 OGRIDFILE=ogr2osm.id
 
-DBUSER=grb-data
-DBDATA=grb_api
-
 cd /usr/local/src/grb
 
 echo "${GREEN}Processing PICC data${RESET}"

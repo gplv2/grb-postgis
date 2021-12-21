@@ -370,26 +370,36 @@ function move_indexes_tablespace {
         echo  "Stopping renderd service (close postgres connections)"
         [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
     fi
+    echo "${GREEN}Setting up the tablespaces for indexes and data${RESET}"
+
     echo "${GREEN}Preparing pre-move data + indexes${RESET}"
     # premove to default to avoid errors
     MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
 
     # create alter list
-    su - postgres -c "psql -qAtX -d ${DATA_DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts.sql 2>/dev/null"
-
-    su - postgres -c "cat /tmp/alter.pre.ts.sql | psql -d ${DATA_DB}"
+    su - postgres -c "psql -qAtX -d ${DATA_DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts1.sql 2>/dev/null"
 
     echo "${GREEN}Moving data + indexes to tablespace${RESET}"
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+#    su - postgres -c "cat /tmp/alter.pre.ts1.sql | psql -d ${DATA_DB}"
 
     # move those indexes for grb_temp
-    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts.sql 2>/dev/null"
-    #sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts1.sql 2>/dev/null"
 
-    # restorey
-    sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+#    su - postgres -c "cat /tmp/alter.ts1.sql | psql"
 
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    # premove to default to avoid errors
+    MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+
+    # create alter list
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts2.sql 2>/dev/null"
+
+    echo "${GREEN}Moving data + indexes to tablespace${RESET}"
+#    su - postgres -c "cat /tmp/alter.pre.ts2.sql | psql -d ${DATA_DB}"
+
+    # move those indexes for grb_temp
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts2.sql 2>/dev/null"
+
+#    su - postgres -c "cat /tmp/alter.ts2.sql | psql"
 
     if [ $TILESERVER == 'yes' ] ; then
         [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
@@ -888,32 +898,41 @@ GRANT ALL PRIVILEGES ON TABLESPACE indexspace TO "${USER}" WITH GRANT OPTION;
 EOF
 
             # set default TS
-            cat > /tmp/alter.ts.sql << EOF
+            cat > /tmp/alter_permission_ts1.sql << EOF
 ALTER DATABASE ${DB} SET TABLESPACE dbspace;
 ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
 ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
 EOF
+            # set default TS
+            cat > /tmp/alter_permission_ts2.sql << EOF
+ALTER DATABASE ${DATA_DB} SET TABLESPACE dbspace;
+ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
+ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
+EOF
 
-            echo "${GREEN}Preparing Database ... $DB / $USER ${RESET}"
+            echo "${GREEN}Preparing Database for $USER ${RESET}"
             # su postgres -c "dropdb $DB --if-exists"
 
-            if ! su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
-                su - postgres -c "createuser $USER"
-                su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
+            echo "${GREEN}Creating Database ${DB} / $USER ${RESET}"
+            if ! su - postgres -c "psql -d ${DB} -c '\q' 2>/dev/null"; then
+                su - postgres -c "createuser ${USER}"
+                su - postgres -c "createdb --encoding='utf-8' --owner=${USER} '${DB}'"
             fi
 
+            echo "${GREEN}Creating Database ${DATA_DB} / $USER ${RESET}"
             # create additional DB for alternative datatest
             if [ "${RES_ARRAY[1]}" = "db" ]; then
                 echo "${GREEN}Creating 2nd GIS db${RESET}"
-                if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
-                    su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
+                if ! su - postgres -c "psql -d ${DATA_DB} -c '\q' 2>/dev/null"; then
+                    su - postgres -c "createdb --encoding='utf-8' --owner=${USER} '${DATA_DB}'"
                 fi
             fi
             echo "${GREEN}GRANT privileges on tablespaces to $USER ${RESET}"
             su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
 
             [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
-            su - postgres -c "cat /tmp/alter.ts.sql | psql"
+            su - postgres -c "cat /tmp/alter_permission_ts1.sql | psql"
+            su - postgres -c "cat /tmp/alter_permission_ts2.sql | psql"
             [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 
             echo "${GREEN}Changing user password ...${RESET}"
@@ -921,7 +940,7 @@ EOF
 ALTER USER "$USER" WITH PASSWORD '${PASSWORD}';
 EOF
 
-            su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
+            su - postgres -c "cat /tmp/install.postcreate.sql | psql"
 
             echo "Installing POSTGIS extentions..."
 
@@ -931,11 +950,11 @@ CREATE EXTENSION postgis_topology;
 CREATE EXTENSION hstore;
 EOF
 
-            if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
+            if su - postgres -c "psql -d ${DB} -c '\q' 2>/dev/null"; then
                 su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
             fi
 
-            if su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
+            if su - postgres -c "psql -d ${DATA_DB} -c '\q' 2>/dev/null"; then
                 su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
             fi
 
@@ -1187,6 +1206,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     process_import
     process_addressing
     process_3d_source_data
+    move_indexes_tablespace
 
     if [ $TILESERVER == 'yes' ] ; then
         # tileserver add-ons
