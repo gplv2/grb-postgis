@@ -582,9 +582,8 @@ function prepare_picc_source_data {
     if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
         # If you are low on diskspace, you can use fuse to mount the zips as device in user space
         cd /usr/local/src/grb
-        mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
-        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG NAMUR
-        chown ${DEPLOY_USER}:${DEPLOY_USER} NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG NAMUR
+        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG 
+        chown ${DEPLOY_USER}:${DEPLOY_USER} NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG
 
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip BRABANT"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip HAINAUT"
