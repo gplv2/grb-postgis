@@ -437,7 +437,7 @@ function process_3d_source_data {
     fi
 }
 
-function process_source_picc_data {
+function process_picc_source {
     echo "${GREEN}Process PICC source data${RESET}"
     # call external script
     chmod +x /tmp/process_picc_source.sh
@@ -451,6 +451,19 @@ function process_merges {
     su - ${DEPLOY_USER} -c "/tmp/process_merges.sh"
 }
 
+function process_addressing {
+    echo "${GREEN}Addressing data for GRB${RESET}"
+    # call external script
+    chmod +x /tmp/process_addressing.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_addressing.sh"
+}
+
+function process_import {
+    echo "${GREEN}Import all data ( GRB / PICC )${RESET}"
+    # call external script
+    chmod +x /tmp/process_import.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_import.sh"
+}
 
 function create_db_ini_file {
     echo "${GREEN}Checking DB ini${RESET}"
@@ -1163,10 +1176,12 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_carto_compiler
     install_tools
     load_osm_data
-    #process_source_data
+    process_source_data
     process_source_picc_data
     process_merges
-    #process_3d_source_data
+    process_import
+    process_addressing
+    process_3d_source_data
 
     if [ $TILESERVER == 'yes' ] ; then
         # tileserver add-ons
