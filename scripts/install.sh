@@ -558,6 +558,54 @@ function prepare_source_data {
     fi
 }
 
+function prepare_picc_source_data {
+    echo "${GREEN}Downloading PICC data${RESET}"
+    # downloading PICC data from private CDN or direct source
+
+    echo "${GREEN}downloading PICC extracts (mirror)${RESET}"
+    # -rw-r--r-- 1 root  root      380910578 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip
+    # -rw-r--r-- 1 root  root     1292005820 Dec 17 14:05 PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip
+    # -rw-r--r-- 1 root  root     1110094279 Dec 17 14:05 PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip
+    # -rw-r--r-- 1 root  root      571795763 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip
+    # -rw-r--r-- 1 root  root      679842563 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip
+
+    # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip"
+
+    echo "${GREEN}Done${RESET}"
+
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
+        # If you are low on diskspace, you can use fuse to mount the zips as device in user space
+        cd /usr/local/src/grb
+        mkdir GRBgis_10000 GRBgis_20001 GRBgis_30000 GRBgis_40000 GRBgis_70000
+        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG NAMUR
+        chown ${DEPLOY_USER}:${DEPLOY_USER} NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG NAMUR
+
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip BRABANT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip HAINAUT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip LIEGE"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip LUXEMBOURG"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip NAMUR"
+
+        echo "${GREEN}Done mounting picc/zip sources${RESET}"
+    else
+        echo "${GREEN}extracting GRB data...${RESET}"
+        # unpacking all provinces data
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip -d BRABANT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip -d HAINAUT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip -d LIEGE"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip -d LUXEMBOURG"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip -d NAMUR"
+
+        echo "${GREEN}Done extracting and preparing picc sources${RESET}"
+    fi
+}
+
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "${GREEN}Setting up bash aliases${RESET}"
@@ -1105,11 +1153,13 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     create_bash_alias
     make_grb_dirs
     prepare_source_data
+    prepare_picc_source_data
     install_compile_packages
     install_carto_compiler
     install_tools
     load_osm_data
     process_source_data
+    process_source_picc_data
     process_3d_source_data
 
     if [ $TILESERVER == 'yes' ] ; then
