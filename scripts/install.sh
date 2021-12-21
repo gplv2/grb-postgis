@@ -434,6 +434,17 @@ function process_3d_source_data {
     fi
 }
 
+function process_source_picc_data {
+    echo "${GREEN}Process PICC source data${RESET}"
+    # call external script
+    chmod +x /tmp/process_picc_source.sh
+    su - ${DEPLOY_USER} -c "nice /tmp/process_picc_source.sh"
+
+    # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
+    #[ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
+    #su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    #[ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
+}
 
 function create_db_ini_file {
     echo "${GREEN}Checking DB ini${RESET}"
