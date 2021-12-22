@@ -13,8 +13,10 @@ cd /usr/local/src/grb
 # We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
 # default value is zero but the file does need to exists if you use the option
 #echo "15715818" > OGRIDFILE
-echo "Reset counter $file"
-echo "0" > ${OGRIDFILE}
+if [ ! -f ${OGRIDFILE} ]; then
+    echo "Reset counter $file"
+    echo "0" > ${OGRIDFILE}
+fi
 
 if [ -x "/datadisk2/out/all_merged.osm" ] && [ -x "/datadisk2/out/all_picc_merged.osm" ]
     echo "${GREEM}OSMOSIS GENERAL MERGE PICC/GRB${RESET}"

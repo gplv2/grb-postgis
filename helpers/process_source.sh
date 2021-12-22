@@ -15,8 +15,10 @@ echo "${GREEN}Processing GRB source${RESET}"
 # We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
 # default value is zero but the file does need to exists if you use the option
 #echo "15715818" > OGRIDFILE
-echo "Reset counter $file"
-echo "0" > ${OGRIDFILE}
+if [ ! -f ${OGRIDFILE} ]; then
+    echo "Reset counter $file"
+    echo "0" > ${OGRIDFILE}
+fi
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space
 # fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000

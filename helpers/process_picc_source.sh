@@ -17,7 +17,7 @@ echo "${GREEN}Processing PICC data${RESET}"
 #echo "15715818" > OGRIDFILE
 
 # If the file already exists, we need to contue counting from theer
-if [ ! -x ${OGRIDFILE} ]; then
+if [ ! -f ${OGRIDFILE} ]; then
     echo "Reset counter $file"
     echo "0" > ${OGRIDFILE}
 fi
