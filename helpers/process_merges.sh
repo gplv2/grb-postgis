@@ -18,7 +18,7 @@ if [ ! -f ${OGRIDFILE} ]; then
     echo "0" > ${OGRIDFILE}
 fi
 
-if [ -x "/datadisk2/out/all_merged.osm" ] && [ -x "/datadisk2/out/all_picc_merged.osm" ]
+if [ -f "/datadisk2/out/all_merged.osm" ] && [ -f "/datadisk2/out/all_picc_merged.osm" ]; then
     echo "${GREEM}OSMOSIS GENERAL MERGE PICC/GRB${RESET}"
     echo "============="
 
@@ -41,12 +41,12 @@ if [ -x "/datadisk2/out/all_merged.osm" ] && [ -x "/datadisk2/out/all_picc_merge
     fi
 fi
 
-if [ ! -x "/datadisk2/out/all_merged.osm" ] && [ -x "/datadisk2/out/all_picc_merged.osm" ]
+if [ ! -f "/datadisk2/out/all_merged.osm" ] && [ -f "/datadisk2/out/all_picc_merged.osm" ]; then
     echo "${GREEN}Only have PICC sources, renaming file for import${RESET}"
     mv /datadisk2/out/all_picc_merged.osm /datadisk2/out/all_general_merged.osm
 fi
 
-if [ -x "/datadisk2/out/all_merged.osm" ] && [ ! -x "/datadisk2/out/all_picc_merged.osm" ]
+if [ -f "/datadisk2/out/all_merged.osm" ] && [ ! -f "/datadisk2/out/all_picc_merged.osm" ]; then
     echo "${GREEN}Only have GRB sources, renaming file for import${RESET}"
     mv /datadisk2/out/all_merged.osm /datadisk2/out/all_general_merged.osm
 fi
