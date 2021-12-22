@@ -1201,7 +1201,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_tools
     load_osm_data
     process_source_data
-    process_source_picc_data
+    process_picc_source
     process_merges
     process_import
     process_addressing
