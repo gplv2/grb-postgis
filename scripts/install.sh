@@ -1206,7 +1206,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     process_import
     process_addressing
     process_3d_source_data
-    move_indexes_tablespace
+#    move_indexes_tablespace  # disable to see how we can optimize this in the future, gives some SQL errors now
 
     if [ $TILESERVER == 'yes' ] ; then
         # tileserver add-ons
