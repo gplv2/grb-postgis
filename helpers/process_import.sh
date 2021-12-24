@@ -114,6 +114,7 @@ UPDATE planet_osm_polygon SET man_made='storage_tank', building='', fixme='Add t
 UPDATE planet_osm_polygon SET man_made='groyne', building='', fixme='This can be either: golfbreker, strandhoofd of lage havendam' WHERE building='golfbreker, strandhoofd en lage havendam';
 UPDATE planet_osm_polygon SET man_made='bridge', building='' WHERE building='overbrugging';
 UPDATE planet_osm_polygon SET man_made='weir', fixme='Waterbouwkundig constructie: Doublecheck this tag carefully, it can be a weir, lock_gate, dam etc. check the wiki for the waterways key for more information. When in doubt, delete this object', building='' WHERE building='waterbouwkundig constructie';
+UPDATE planet_osm_polygon SET "source:geometry:entity"='Picc' WHERE tags->'GEOREF_ID' IS NOT NULL AND "source:geometry:entity" IS NULL;
 UPDATE planet_osm_polygon SET building='commercial' WHERE building='MAG';
 UPDATE planet_osm_polygon SET building='school' WHERE building='SCO';
 UPDATE planet_osm_polygon SET building='farm_auxiliary' WHERE building='FRM';
@@ -135,6 +136,7 @@ UPDATE planet_osm_polygon SET building='government' WHERE building='HDV';
 UPDATE planet_osm_polygon SET building='service' WHERE building='SDE';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='CEE';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='STS';
+UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc'
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
