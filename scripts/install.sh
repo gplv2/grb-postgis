@@ -657,7 +657,7 @@ function install_grb_sources {
 
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
-    su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
+    #su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grb2osm.git grb2osm"
     su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
     su - ${DEPLOY_USER} -c "chmod +x /home/${DEPLOY_USER}/grb2osm/grb2osm.php"

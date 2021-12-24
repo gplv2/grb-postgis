@@ -28,17 +28,6 @@ if [ ! -f ${OGRIDFILE} ]; then
     echo "0" > ${OGRIDFILE}
 fi
 
-# If you are low on diskspace, you can use fuse to mount the zips as device in user space
-# fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
-# fusermount -u GRBgis_40000
-
-#fuse-zip -o ro files/GRBgis_10000.zip GRBgis_10000
-#fuse-zip -o ro files/GRBgis_20001.zip GRBgis_20001
-#fuse-zip -o ro files/GRBgis_30000.zip GRBgis_30000
-#fuse-zip -o ro files/GRBgis_40000.zip GRBgis_40000
-#fuse-zip -o ro files/GRBgis_70000.zip GRBgis_70000
-#fuse-zip -o ro files/GRBgis_04000.zip GRBgis_04000
-
 for file in NAMUR/CONSTR_BATIEMPRISE.shp LIEGE/CONSTR_BATIEMPRISE.shp HAINAUT/CONSTR_BATIEMPRISE.shp LUXEMBOURG/CONSTR_BATIEMPRISE.shp BRABANT/CONSTR_BATIEMPRISE.shp
 
 do
