@@ -114,6 +114,27 @@ UPDATE planet_osm_polygon SET man_made='storage_tank', building='', fixme='Add t
 UPDATE planet_osm_polygon SET man_made='groyne', building='', fixme='This can be either: golfbreker, strandhoofd of lage havendam' WHERE building='golfbreker, strandhoofd en lage havendam';
 UPDATE planet_osm_polygon SET man_made='bridge', building='' WHERE building='overbrugging';
 UPDATE planet_osm_polygon SET man_made='weir', fixme='Waterbouwkundig constructie: Doublecheck this tag carefully, it can be a weir, lock_gate, dam etc. check the wiki for the waterways key for more information. When in doubt, delete this object', building='' WHERE building='waterbouwkundig constructie';
+UPDATE planet_osm_polygon SET building='commercial' WHERE building='MAG';
+UPDATE planet_osm_polygon SET building='school' WHERE building='SCO';
+UPDATE planet_osm_polygon SET building='farm_auxiliary' WHERE building='FRM';
+UPDATE planet_osm_polygon SET building='industrial' WHERE building='IDS';
+UPDATE planet_osm_polygon SET building='religious' WHERE building='LDC';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='CUL';
+UPDATE planet_osm_polygon SET building='public' WHERE building='ADM';
+UPDATE planet_osm_polygon SET building='school' WHERE building='SCF';
+UPDATE planet_osm_polygon SET building='castle' WHERE building='CHT';
+UPDATE planet_osm_polygon SET building='hospital' WHERE building='HOP';
+UPDATE planet_osm_polygon SET building='school' WHERE building='SCS';
+UPDATE planet_osm_polygon SET building='public' WHERE building='POL';
+UPDATE planet_osm_polygon SET building='train_station' WHERE building='TRG';
+UPDATE planet_osm_polygon SET building='university' WHERE building='SCU';
+UPDATE planet_osm_polygon SET building='fire_station' WHERE building='POM';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='PRI';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='MDR';
+UPDATE planet_osm_polygon SET building='government' WHERE building='HDV';
+UPDATE planet_osm_polygon SET building='service' WHERE building='SDE';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='CEE';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='STS';
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
