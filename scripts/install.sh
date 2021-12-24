@@ -639,6 +639,41 @@ function prepare_picc_source_data {
     fi
 }
 
+function prepare_urbis_source_data {
+    echo "${GREEN}Downloading URBIS data${RESET}"
+    # downloading PICC data from private CDN or direct source
+
+    echo "${GREEN}downloading URBIS extracts (mirror)${RESET}"
+    # UrbAdm3D_SHP.zip
+    # UrbAdm_SHP.zip
+
+    # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_SHP.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm3D_SHP.zip"
+
+    echo "${GREEN}Done${RESET}"
+
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
+        # If you are low on diskspace, you can use fuse to mount the zips as device in user space
+        cd /usr/local/src/grb
+        mkdir URBIS URBIS3D
+        chown ${DEPLOY_USER}:${DEPLOY_USER} URBIS URBIS3D
+
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
+
+        echo "${GREEN}Done mounting urbis/zip sources${RESET}"
+    else
+        echo "${GREEN}extracting GRB data...${RESET}"
+        # unpacking all provinces data
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
+
+        echo "${GREEN}Done extracting and preparing URBIS sources${RESET}"
+    fi
+}
+
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "${GREEN}Setting up bash aliases${RESET}"
@@ -1196,6 +1231,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     make_grb_dirs
     prepare_source_data
     prepare_picc_source_data
+    prepare_urbis_source_data
     install_compile_packages
     install_carto_compiler
     install_tools
