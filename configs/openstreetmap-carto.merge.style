@@ -67,6 +67,7 @@ way   surface           text         linear
 way   source:geometry:date      text linear
 way   source:geometry:oidn      int4 linear
 way   source:geometry:uidn      int4 linear
+way   source:geometry:version   int4 linear
 way   source:geometry:entity    text linear
 way   source:geometry           text linear
 node,way   toll         text         linear
@@ -104,6 +105,20 @@ node,way    LENGTE                  text    delete
 node,way    OPPERVL                 text    delete
 #node,way    TYPE                    text    delete
 #node,way    UIDN                    text    delete
+# urbis delete
+node,way    AREA                    text    delete
+node,way    STATUS                  text    delete
+node,way    CAPAKEY                 text    delete
+node,way    END_LIFE                text    delete
+node,way    BEGIN_LIFE              text    delete
+# picc delete
+node,way    PRECIS_Z                 text    delete
+node,way    DATE_LEVE                 text    delete
+node,way    PRECIS_XY                 text    delete
+node,way    CODE_WALTO                text    delete
+node,way    NATUR_DESC                text    delete
+node,way    PRECIS_Z                 text    delete
+# grb delete
 node,way    LBLVORM                 text    delete
 node,way    VERSDATUM               text    delete
 node,way    BGNINV                  text    delete
