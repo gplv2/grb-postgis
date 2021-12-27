@@ -28,6 +28,25 @@ if [ ! -f ${OGRIDFILE} ]; then
     echo "${OSM_ID_START}" > ${OGRIDFILE}
 fi
 
+# urbis specific, use postgresql data dump 
+
+# alter role "grb-data" IN DATABASE urbis set search_path = "URBIS_DIST_M7",public;
+# create extension postgis;
+# CREATE DATABASE "urbis" WITH OWNER "grb-data" ENCODING='UTF-8';
+# UrbAdm_Schema.sql
+# UrbAdm_Data.sql
+
+echo "${GREEN}Loading up URBIS database${RESET}"
+
+echo 'CREATE DATABASE "urbis" WITH OWNER "grb-data" ENCODING="UTF-8"' | psql -U ${DBUSER} -h 127.0.0.1
+echo 'CREATE EXTENSION postgis' | psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1
+echo 'ALTER ROLE "grb-data" IN DATABASE urbis SET search_path = "URBIS_DIST_M7",public;' | psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1
+
+psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/UrbAdm_Schema.sql
+psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/UrbAdm_Data.sql
+
+echo "${GREEN}Processing URBIS shape files${RESET}"
+
 for file in URBIS/UrbAdm_BUILDING.shp
 
 do

@@ -30,6 +30,9 @@ USER=grb-data
 DBUSER=${USER}
 DBDATA=${DB}
 
+# database for urbis postgresql extract
+DBURBIS=urbis
+
 # ini file for events/items DB access
 DATA_DB=grb_temp
 PASSWORD=str0ngDBp4ssw0rd
