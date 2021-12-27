@@ -75,7 +75,7 @@ function install_shapefiles {
 
 function install_tools {
     echo "${GREEN}Installing tools${RESET}"
-    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev liblz4-dev
+    DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev liblz4-dev libboost-tools-dev libboost-thread1.65-dev magics++
 
     echo "Building protozero library"
     # Add the protozero libraries here since it was remove from osmium  see:  https://github.com/osmcode/libosmium/commit/bba631a51b3724327ed1a6a247d372da271b25cb
@@ -90,7 +90,14 @@ function install_tools {
     cd /usr/local/src/ && wget --quiet https://download.osgeo.org/gdal/${GDAL_VERSION}/gdal-${GDAL_VERSION}.tar.gz && tar -xzvf gdal-${GDAL_VERSION}.tar.gz && cd gdal-${GDAL_VERSION} && ./configure  && make -j ${THREADS} && make install && ldconfig
 
     echo "Building osm2pgsql"
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
+    #cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && git checkout 7865cd71353c064e7752def0d1835b5f63229379
+    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql
+
+    # temp fix for bug
+    sed -i "s/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX)/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX C)/" /usr/local/src/osm2pgsql/CMakeLists.txt
+
+    cd /usr/local/src/osm2pgsql && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
+
     echo "Building libosmium standalone library and osmium tool"
     cd /usr/local/src/ && git clone --recursive https://github.com/osmcode/libosmium.git && git clone https://github.com/osmcode/osmium-tool.git && cd /usr/local/src/libosmium && mkdir build && cd build && cmake .. && make -j ${CORES} && make install && cd /usr/local/src/osmium-tool && mkdir build && cd build && cmake .. && make -j ${CORES} && make install
 
@@ -115,14 +122,14 @@ function install_tools {
     cd /usr/local/src/ && git clone https://github.com/gravitystorm/openstreetmap-carto.git
 
     if [ $TILESERVER == 'yes' ] ; then
-    	# carto for BELGIUM tiles
-    	cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
+        # carto for BELGIUM tiles
+        cd /usr/local/src/ && git clone https://github.com/jbelien/openstreetmap-carto-be.git be-carto
 
-    	#sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
-    	sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
+        #sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"|" /usr/local/src/be-carto/project.mml
+        sed -i.save "s|dbname:".*"$|dbname: \"${DATA_DB}\"\n    host: 127.0.0.1\n    user: \"${USER}\"\n    password: \"${PASSWORD}\"|" /usr/local/src/be-carto/project.mml
 
-    	cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
-    	cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
+        cd /usr/local/src/be-carto && python -c 'import sys, yaml, json; json.dump(yaml.safe_load(sys.stdin), sys.stdout, indent=4, separators=(",", ": "))' < project.mml > project.json.mml
+        cd /usr/local/src/be-carto && carto -a "3.0.0" project.json.mml > mapnik.xml
     fi
 
     # copy modified style sheet (wonder if I still need the rest of the source of cartocss (seems to work like this)
@@ -132,8 +139,8 @@ function install_tools {
     cp /tmp/configs/openstreetmap-carto-3d.style /usr/local/src/openstreetmap-carto/
 
     if [ $TILESERVER == 'yes' ] ; then
-    	# merge styles
-    	cp /tmp/configs/openstreetmap-carto.merge.* /usr/local/src/be-carto/
+        # merge styles
+        cp /tmp/configs/openstreetmap-carto.merge.* /usr/local/src/be-carto/
     fi
 
     echo "${GREEN}Installing small tools in /usr/local/bin/${RESET}"
@@ -334,7 +341,7 @@ function load_osm_data {
     echo "${GREEN}Renumbering sorted file${RESET}"
     su - ${DEPLOY_USER} -c "cat /datadisk1/scratch/belgium-latest-nobuildings-renumbered.osm  | osm-renumber.pl > /datadisk2/out/belgium-latest-nobuildings-renum.osm"
 
-    echo "${GREEN}Sorting OSM file${RESET}"
+    echo "${GREEN}Sorting renumbered OSM file${RESET}"
     su - ${DEPLOY_USER} -c "osmium sort -v --progress /datadisk2/out/belgium-latest-nobuildings-renum.osm -o /datadisk1/scratch/belgium-latest-nobuildings-renum_v2.osm"
 
     # cat /datadisk2/out/belgium-latest-nobuildings-renumbered.osm  | ./osm-renumber.pl > /datadisk1/scratch/belgium-latest-nobuildings-renum.osm
@@ -344,10 +351,11 @@ function load_osm_data {
     echo "${GREEN}Loading dataset in db: ${DATA_DB} ${RESET}"
     # since we use a good fat machine with 4 processeors, lets use 3 for osm2pgsql and keep one for the database
     if [ $TILESERVER == 'yes' ] ; then
-    	sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+        sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
     else
-    	sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
-    fi	
+        sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
+    fi  
+    echo "${GREEN}Done - Loading OSM data${RESET}"
 }
 
 function create_osm_indexes {
@@ -362,26 +370,36 @@ function move_indexes_tablespace {
         echo  "Stopping renderd service (close postgres connections)"
         [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
     fi
+    echo "${GREEN}Setting up the tablespaces for indexes and data${RESET}"
+
     echo "${GREEN}Preparing pre-move data + indexes${RESET}"
     # premove to default to avoid errors
     MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
 
     # create alter list
-    su - postgres -c "psql -qAtX -d ${DATA_DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts.sql 2>/dev/null"
-
-    su - postgres -c "cat /tmp/alter.pre.ts.sql | psql -d ${DATA_DB}"
+    su - postgres -c "psql -qAtX -d ${DATA_DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts1.sql 2>/dev/null"
 
     echo "${GREEN}Moving data + indexes to tablespace${RESET}"
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+#    su - postgres -c "cat /tmp/alter.pre.ts1.sql | psql -d ${DATA_DB}"
 
     # move those indexes for grb_temp
-    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts.sql 2>/dev/null"
-    #sed -i "s/${DB}/${DATA_DB}/" /tmp/alter.ts.sql
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts1.sql 2>/dev/null"
 
-    # restorey
-    sed -i "s/${DATA_DB}/${DB}/" /tmp/alter.ts.sql
+#    su - postgres -c "cat /tmp/alter.ts1.sql | psql"
 
-    su - postgres -c "cat /tmp/alter.ts.sql | psql"
+    # premove to default to avoid errors
+    MOVESQL="SELECT ' ALTER TABLE ' || schemaname || '.' || tablename || ' SET TABLESPACE pg_default;' FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+
+    # create alter list
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.pre.ts2.sql 2>/dev/null"
+
+    echo "${GREEN}Moving data + indexes to tablespace${RESET}"
+#    su - postgres -c "cat /tmp/alter.pre.ts2.sql | psql -d ${DATA_DB}"
+
+    # move those indexes for grb_temp
+    su - postgres -c "psql -qAtX -d ${DB} -c \"${MOVESQL}\" > /tmp/alter.ts2.sql 2>/dev/null"
+
+#    su - postgres -c "cat /tmp/alter.ts2.sql | psql"
 
     if [ $TILESERVER == 'yes' ] ; then
         [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
@@ -409,7 +427,7 @@ function process_source_data {
     echo "${GREEN}Process source data${RESET}"
     # call external script
     chmod +x /tmp/process_source.sh
-    su - ${DEPLOY_USER} -c "nice /tmp/process_source.sh"
+    su - ${DEPLOY_USER} -c "/tmp/process_source.sh"
 
     # now move all the indexes to the second disk for speed (the tables will probably be ok but the indexes not (no default ts)
     #[ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
@@ -434,6 +452,40 @@ function process_3d_source_data {
     fi
 }
 
+function process_picc_source {
+    echo "${GREEN}Process PICC source data${RESET}"
+    # call external script
+    chmod +x /tmp/process_picc_source.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_picc_source.sh"
+}
+
+function process_urbis_source {
+    echo "${GREEN}Process URBIS source data${RESET}"
+    # call external script
+    chmod +x /tmp/process_urbis_source.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_urbis_source.sh"
+}
+
+function process_merges {
+    echo "${GREEN}Merging source data ( GRB / PICC )${RESET}"
+    # call external script
+    chmod +x /tmp/process_merges.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_merges.sh"
+}
+
+function process_addressing {
+    echo "${GREEN}Addressing data for GRB${RESET}"
+    # call external script
+    chmod +x /tmp/process_addressing.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_addressing.sh"
+}
+
+function process_import {
+    echo "${GREEN}Import all data ( GRB / PICC )${RESET}"
+    # call external script
+    chmod +x /tmp/process_import.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_import.sh"
+}
 
 function create_db_ini_file {
     echo "${GREEN}Checking DB ini${RESET}"
@@ -547,6 +599,94 @@ function prepare_source_data {
     fi
 }
 
+function prepare_picc_source_data {
+    echo "${GREEN}Downloading PICC data${RESET}"
+    # downloading PICC data from private CDN or direct source
+
+    echo "${GREEN}downloading PICC extracts (mirror)${RESET}"
+    # -rw-r--r-- 1 root  root      380910578 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip
+    # -rw-r--r-- 1 root  root     1292005820 Dec 17 14:05 PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip
+    # -rw-r--r-- 1 root  root     1110094279 Dec 17 14:05 PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip
+    # -rw-r--r-- 1 root  root      571795763 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip
+    # -rw-r--r-- 1 root  root      679842563 Dec 17 14:04 PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip
+
+    # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip"
+
+    echo "${GREEN}Done${RESET}"
+
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
+        # If you are low on diskspace, you can use fuse to mount the zips as device in user space
+        cd /usr/local/src/grb
+        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG 
+        chown ${DEPLOY_USER}:${DEPLOY_USER} NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG
+
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip BRABANT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip HAINAUT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip LIEGE"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip LUXEMBOURG"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip NAMUR"
+
+        echo "${GREEN}Done mounting picc/zip sources${RESET}"
+    else
+        echo "${GREEN}extracting GRB data...${RESET}"
+        # unpacking all provinces data
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip -d BRABANT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip -d HAINAUT"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip -d LIEGE"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip -d LUXEMBOURG"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip -d NAMUR"
+
+        echo "${GREEN}Done extracting and preparing picc sources${RESET}"
+    fi
+}
+
+function prepare_urbis_source_data {
+    echo "${GREEN}Downloading URBIS data${RESET}"
+    # downloading PICC data from private CDN or direct source
+
+    echo "${GREEN}downloading URBIS extracts (mirror)${RESET}"
+    # UrbAdm3D_SHP.zip
+    # UrbAdm_SHP.zip
+
+    # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
+    # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_SHP.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm3D_SHP.zip"
+    # get the postgresql version too, much easier to pull addresses from this
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_PostGreSQL.zip"
+
+    echo "${GREEN}Done${RESET}"
+
+    if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
+        # If you are low on diskspace, you can use fuse to mount the zips as device in user space
+        cd /usr/local/src/grb
+        mkdir URBIS URBIS3D
+        chown ${DEPLOY_USER}:${DEPLOY_USER} URBIS URBIS3D
+
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
+
+	# postgreql version
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_PostGreSQL.zip URBISPG"
+
+        echo "${GREEN}Done mounting urbis/zip sources${RESET}"
+    else
+        echo "${GREEN}extracting GRB data...${RESET}"
+        # unpacking all provinces data
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
+
+        echo "${GREEN}Done extracting and preparing URBIS sources${RESET}"
+    fi
+}
+
 # Create an aliases file so we can use short commands to navigate a project
 function create_bash_alias {
     echo "${GREEN}Setting up bash aliases${RESET}"
@@ -557,7 +697,7 @@ alias home='cd ${PROJECT_DIRECTORY}'
 EOF
 }
 
-function install_grb_sources {
+function install_git_sources {
     echo "${GREEN}Install GRB sources${RESET}"
     # https://github.com/gplv2/grb2pgsql.git
     # https://github.com/gplv2/grb2osm.git
@@ -565,7 +705,7 @@ function install_grb_sources {
 
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grbtool.git grbtool"
     #su - ${DEPLOY_USER} -c "git clone git@github.com:gplv2/grb2osm.git grb2osm"
-    su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
+    #su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grbtool.git grbtool"
     su - ${DEPLOY_USER} -c "git clone https://github.com/gplv2/grb2osm.git grb2osm"
     su - ${DEPLOY_USER} -c "cd grb2osm && composer install"
     su - ${DEPLOY_USER} -c "chmod +x /home/${DEPLOY_USER}/grb2osm/grb2osm.php"
@@ -576,7 +716,7 @@ function install_grb_sources {
     #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
 }
 
-function make_grb_dirs {
+function make_work_dirs {
     echo "${GREEN}Creating dirs${RESET}"
     CREATEDIRS="/usr/local/src/grb /datadisk2/out"
 
@@ -806,32 +946,41 @@ GRANT ALL PRIVILEGES ON TABLESPACE indexspace TO "${USER}" WITH GRANT OPTION;
 EOF
 
             # set default TS
-            cat > /tmp/alter.ts.sql << EOF
+            cat > /tmp/alter_permission_ts1.sql << EOF
 ALTER DATABASE ${DB} SET TABLESPACE dbspace;
 ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
 ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
 EOF
+            # set default TS
+            cat > /tmp/alter_permission_ts2.sql << EOF
+ALTER DATABASE ${DATA_DB} SET TABLESPACE dbspace;
+ALTER TABLE ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE dbspace;
+ALTER INDEX ALL IN TABLESPACE pg_default OWNED BY "${USER}" SET TABLESPACE indexspace;
+EOF
 
-            echo "${GREEN}Preparing Database ... $DB / $USER ${RESET}"
+            echo "${GREEN}Preparing Database for $USER ${RESET}"
             # su postgres -c "dropdb $DB --if-exists"
 
-            if ! su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
-                su - postgres -c "createuser $USER"
-                su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DB'"
+            echo "${GREEN}Creating Database ${DB} / $USER ${RESET}"
+            if ! su - postgres -c "psql -d ${DB} -c '\q' 2>/dev/null"; then
+                su - postgres -c "createuser ${USER}"
+                su - postgres -c "createdb --encoding='utf-8' --owner=${USER} '${DB}'"
             fi
 
+            echo "${GREEN}Creating Database ${DATA_DB} / $USER ${RESET}"
             # create additional DB for alternative datatest
             if [ "${RES_ARRAY[1]}" = "db" ]; then
                 echo "${GREEN}Creating 2nd GIS db${RESET}"
-                if ! su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
-                    su - postgres -c "createdb --encoding='utf-8' --owner=$USER '$DATA_DB'"
+                if ! su - postgres -c "psql -d ${DATA_DB} -c '\q' 2>/dev/null"; then
+                    su - postgres -c "createdb --encoding='utf-8' --owner=${USER} '${DATA_DB}'"
                 fi
             fi
             echo "${GREEN}GRANT privileges on tablespaces to $USER ${RESET}"
             su - postgres -c "cat /tmp/install.tablespaces.sql | psql"
 
             [ -x /etc/init.d/renderd ] && /etc/init.d/renderd stop
-            su - postgres -c "cat /tmp/alter.ts.sql | psql"
+            su - postgres -c "cat /tmp/alter_permission_ts1.sql | psql"
+            su - postgres -c "cat /tmp/alter_permission_ts2.sql | psql"
             [ -x /etc/init.d/renderd ] && /etc/init.d/renderd start
 
             echo "${GREEN}Changing user password ...${RESET}"
@@ -839,7 +988,7 @@ EOF
 ALTER USER "$USER" WITH PASSWORD '${PASSWORD}';
 EOF
 
-            su - postgres -c "cat /tmp/install.postcreate.sql | psql -d $DB"
+            su - postgres -c "cat /tmp/install.postcreate.sql | psql"
 
             echo "Installing POSTGIS extentions..."
 
@@ -849,11 +998,11 @@ CREATE EXTENSION postgis_topology;
 CREATE EXTENSION hstore;
 EOF
 
-            if su - postgres -c "psql -d $DB -c '\q' 2>/dev/null"; then
+            if su - postgres -c "psql -d ${DB} -c '\q' 2>/dev/null"; then
                 su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DB"
             fi
 
-            if su - postgres -c "psql -d $DATA_DB -c '\q' 2>/dev/null"; then
+            if su - postgres -c "psql -d ${DATA_DB} -c '\q' 2>/dev/null"; then
                 su - postgres -c "cat /tmp/install.postgis.sql | psql -d $DATA_DB"
             fi
 
@@ -1089,17 +1238,41 @@ configure_ssh_config
 echo "${GREEN}Done general stuff${RESET}"
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "${GREEN}Running setup..${RESET}"
-    install_grb_sources
+    echo "${GREEN}Running GIS setup..${RESET}"
+    install_git_sources
     create_bash_alias
-    make_grb_dirs
-    prepare_source_data
+    make_work_dirs
+    if [ ${GRB} -eq 1 ] ; then 
+	prepare_source_data
+    fi
+    if [ ${PICC} -eq 1 ] ; then 
+    	prepare_picc_source_data
+    fi
+    if [ ${URBIS} -eq 1 ] ; then 
+    	prepare_urbis_source_data
+    fi
     install_compile_packages
     install_carto_compiler
     install_tools
     load_osm_data
-    process_source_data
-    process_3d_source_data
+    if [ ${GRB} -eq 1 ] ; then 
+    	process_source_data
+    fi
+    if [ ${PICC} -eq 1 ] ; then 
+    	process_picc_source
+    fi
+    if [ ${URBIS} -eq 1 ] ; then 
+    	process_urbis_source
+    fi
+    process_merges
+    process_import
+    if [ ${GRB} -eq 1 ] || [ ${PICC} -eq 1 ]; then
+    	process_addressing
+    fi
+    if [ ${GRB} -eq 1 ] ; then 
+    	process_3d_source_data
+    fi
+#    move_indexes_tablespace  # disable to see how we can optimize this in the future, gives some SQL errors now
 
     if [ $TILESERVER == 'yes' ] ; then
         # tileserver add-ons

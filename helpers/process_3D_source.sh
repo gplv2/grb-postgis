@@ -4,6 +4,12 @@ set -o allexport
 source /tmp/configs/variables
 set +o allexport
 
+# Screen colors using tput
+
+RED=`tput setaf 1`
+GREEN=`tput setaf 2`
+RESET=`tput sgr0`
+
 OGRIDFILE=ogr2osm.id
 
 cd /usr/local/src/grb
@@ -13,8 +19,10 @@ cd /usr/local/src/grb
 # We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
 # default value is zero but the file does need to exists if you use the option
 #echo "15715818" > OGRIDFILE
-echo "Reset counter $file"
-echo "0" > ${OGRIDFILE}
+if [ ! -f ${OGRIDFILE} ]; then
+    echo "Reset counter $file"
+    echo "${OSM_ID_3D_START}" > ${OGRIDFILE}
+fi
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space
 # fuse-zip -o ro ../php/files/GRBgis_40000.zip GRBgis_40000
@@ -121,8 +129,8 @@ echo ""
 echo "${GREEN}IMPORT${RESET}"
 echo "======"
 
-# /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_merged.osm -H grb-db-0
-/usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d grb_api -U grb-data /datadisk2/out/all_3d_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
+# /usr/bin/osm2pgsql --slim --create --cache 4000 --number-processes 3 --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style --multi-geometry -d ${DB} -U ${USER} /datadisk2/out/all_merged.osm -H grb-db-0
+/usr/local/bin/osm2pgsql --slim --drop --create -l --cache ${CACHE} --number-processes ${THREADS} --hstore --style /usr/local/src/openstreetmap-carto/openstreetmap-carto-3d.style --multi-geometry -d ${DB} -U ${USER} /datadisk2/out/all_3d_merged.osm -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace --prefix ${TABLEPREFIX}
 
 if [ $? -eq 0 ]
 then
@@ -134,23 +142,23 @@ fi
 
 echo "${GREEN}Creating additional indexes...${RESET}"
 
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p1 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p2 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p3 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:ref\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
-echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p1 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:uidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U ${USER} ${DB} -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p2 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:oidn\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U ${USER} ${DB} -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_index_p3 ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:ref\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U ${USER} ${DB} -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_grb_source_ent_p ON ${TABLEPREFIX}_polygon USING btree (\"source:geometry:entity\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U ${USER} ${DB} -h 127.0.0.1
 
 # setup source tag for all objects imported
-echo "UPDATE ${TABLEPREFIX}_polygon SET "source" = 'GRB';" | psql -U grb-data grb_api -h 127.0.0.1
+echo "UPDATE ${TABLEPREFIX}_polygon SET "source" = 'GRB';" | psql -U ${USER} ${DB} -h 127.0.0.1
 
 # more indexes
-echo "CREATE INDEX ${TABLEPREFIX}_osm_src_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U grb-data grb_api -h 127.0.0.1
+echo "CREATE INDEX ${TABLEPREFIX}_osm_src_index_p ON ${TABLEPREFIX}_polygon USING btree (\"source\" COLLATE pg_catalog.\"default\") TABLESPACE indexspace;" | psql -U ${USER} ${DB} -h 127.0.0.1
 
 # use a query to update 'trap' as this word is a bit too generic and short to do with sed tricks
-echo "UPDATE ${TABLEPREFIX}_polygon set highway='steps', building='' where building='trap';" | psql -U grb-data grb_api -h 127.0.0.1
+echo "UPDATE ${TABLEPREFIX}_polygon set highway='steps', building='' where building='trap';" | psql -U ${USER} ${DB} -h 127.0.0.1
 
 echo "${GREEN}creating additional indexes...${RESET}"
 
-cat > /tmp/create.indexes.sql << EOF
+cat > /tmp/create.3D.indexes.sql << EOF
 CREATE INDEX idx_${TABLEPREFIX}_osm_line_nobridge ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE ((man_made <> ALL (ARRAY[''::text, '0'::text, 'no'::text])) OR man_made IS NOT NULL);
 CREATE INDEX idx_${TABLEPREFIX}_mm_null ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (man_made IS NOT NULL);
 CREATE INDEX idx_${TABLEPREFIX}_no_bridge ON ${TABLEPREFIX}_polygon USING gist (way) TABLESPACE indexspace WHERE (bridge <> ALL (ARRAY[''::text, '0'::text, 'no'::text]));
@@ -161,7 +169,7 @@ CREATE INDEX idx_${TABLEPREFIX}_b_null ON ${TABLEPREFIX}_polygon USING gist (way
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/create.indexes.sql | psql -U grb-data grb_api -h 127.0.0.1
+cat /tmp/create.3D.indexes.sql | psql -U ${USER} ${DB} -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then
@@ -172,16 +180,16 @@ else
 fi
 
 # datatype fixes
-cat > /tmp/datatype.tags.sql << EOF
+cat > /tmp/datatype.3D.tags.sql << EOF
 ALTER TABLE ${TABLEPREFIX}_polygon alter column "source:geometry:oidn" TYPE INTEGER  USING ("source:geometry:oidn"::integer) ;
 ALTER TABLE ${TABLEPREFIX}_polygon alter column "source:geometry:uidn" TYPE INTEGER  USING ("source:geometry:uidn"::integer) ;
 EOF
 
-cat /tmp/datatype.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
+cat /tmp/datatype.3D.tags.sql | psql -U ${USER} ${DB} -h 127.0.0.1
 
 # change tags in DB
 # DELETE FROM planet_osm_polygon WHERE building IN ('garage3','pijler','rooster','zichtbare onderkeldering','cultuur-historisch monument','cabine','garage4','staketsel','gebouw afgezoomd met virtuele gevels','tunnelmond');
-cat > /tmp/update.tags.sql << EOF
+cat > /tmp/update.3D.tags.sql << EOF
 UPDATE ${TABLEPREFIX}_polygon SET fixme='verdieping, correct the building tag, add building:level and building:min_level before upload in JOSM!', building='yes' where building='verdieping';
 UPDATE ${TABLEPREFIX}_polygon SET building='yes', man_made='water_tower' WHERE building='watertoren';
 UPDATE ${TABLEPREFIX}_polygon SET man_made='tower', "tower:type"='cooling' , building='yes' WHERE building='koeltoren';
@@ -197,7 +205,7 @@ UPDATE ${TABLEPREFIX}_polygon SET man_made='weir', fixme='Waterbouwkundig constr
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
-cat /tmp/update.tags.sql | psql -U grb-data grb_api -h 127.0.0.1
+cat /tmp/update.3D.tags.sql | psql -U ${USER} ${DB} -h 127.0.0.1
 
 if [ $? -eq 0 ]
 then

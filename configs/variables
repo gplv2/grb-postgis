@@ -20,18 +20,38 @@ CLOUD=google
 
 PROJECT_NAME=grbapi
 PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
-DB=grb_api
-USER=grb-data
 DEPLOY_USER=glenn
 PGPASS=/home/${DEPLOY_USER}/.pgpass
 PGRC=/home/${DEPLOY_USER}/.psqlrc
 
+DB=grb_api
+USER=grb-data
+
+DBUSER=${USER}
+DBDATA=${DB}
+
+# database for urbis postgresql extract
+DBURBIS=urbis
+
 # ini file for events/items DB access
 DATA_DB=grb_temp
 PASSWORD=str0ngDBp4ssw0rd
+
 DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
 
 DEBIAN_FRONTEND=noninteractive
+
+# selective processing 
+PICC=1
+GRB=1
+URBIS=1
+
+# for incremental updates, use this ID so it doesn't class with the existing data
+# All new data will start from there, making it possible to do partial processing
+# for example : only URBIS 
+# for full processing this should be set at zero
+OSM_ID_START=78408330
+OSM_ID_3D_START=78408330
 
 #GRB_RELEASE_DATE=20181204
 #GRB_RELEASE_DATE=20190815
