@@ -47,6 +47,8 @@ if [ -f "/datadisk2/out/all_merged.osm" ] && [ ! -f "/datadisk2/out/all_picc_mer
     mv /datadisk2/out/all_merged.osm /datadisk2/out/all_general_merged.osm
 fi
 
+# /datadisk2/out/all_urbis_merged.osm
+
 echo ""
 echo "${GREEN}Flush cache${RESET}"
 echo ""

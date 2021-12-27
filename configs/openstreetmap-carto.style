@@ -7,6 +7,8 @@ node,way   addr:housename      text  linear
 node,way   addr:housenumber    text  linear
 node,way   addr:interpolation  text  linear
 way   addr:street  text  linear
+way   addr:street:nl  text  linear
+way   addr:street:fr  text  linear
 node,way   addr:flats  text  linear
 node,way   admin_level  text         linear
 node,way   aerialway    text         linear
