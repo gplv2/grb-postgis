@@ -1238,7 +1238,7 @@ configure_ssh_config
 echo "${GREEN}Done general stuff${RESET}"
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
-    echo "${GREEN}Running setup..${RESET}"
+    echo "${GREEN}Running GIS setup..${RESET}"
     install_git_sources
     create_bash_alias
     make_work_dirs
@@ -1266,7 +1266,9 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
     process_merges
     process_import
-    process_addressing
+    if [ ${GRB} -eq 1 ] || [ ${PICC} -eq 1 ]; then
+    	process_addressing
+    fi
     if [ ${GRB} -eq 1 ] ; then 
     	process_3d_source_data
     fi

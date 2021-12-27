@@ -18,13 +18,21 @@ echo "======"
 
 cd /home/${DEPLOY_USER}
 
+if [ ${GRB} -eq 1 ]; then
 echo "${GREEN}GRB addresses${RESET}"
 # address directly in the database using DBF database file, the tool will take care of all anomalities encountered (knw/Gbg)
-php grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
+    php grb2osm/grb2osm.php -f /usr/local/src/grb/GRBgis_20001/Shapefile/TblGbgAdr20001B500.dbf,/usr/local/src/grb/GRBgis_10000/Shapefile/TblGbgAdr10000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblGbgAdr30000B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblGbgAdr40000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblGbgAdr70000B500.dbf,/usr/local/src/grb/GRBgis_30000/Shapefile/TblKnwAdr30000B500.dbf,/usr/local/src/grb/GRBgis_70000/Shapefile/TblKnwAdr70000B500.dbf,/usr/local/src/grb/GRBgis_20001/Shapefile/TblKnwAdr20001B500.dbf,/usr/local/src/grb/GRBgis_40000/Shapefile/TblKnwAdr40000B500.dbf
+fi
 
+if [ ${PICC} -eq 1 ]; then
 echo "${GREEN}PICC addresses${RESET}"
 # address picc directly in DB, this tool will take care of duplicate geometries
-php grb2osm/grb2osm.php -p -f /usr/local/src/grb/NAMUR/ADRESS_POINT.dbf,/usr/local/src/grb/HAINAUT/ADRESS_POINT.dbf,/usr/local/src/grb/LIEGE/ADRESS_POINT.dbf,/usr/local/src/grb/LUXEMBOURG/ADRESS_POINT.dbf,/usr/local/src/grb/BRABANT/ADRESS_POINT.dbf
+    php grb2osm/grb2osm.php -p -f /usr/local/src/grb/NAMUR/ADRESS_POINT.dbf,/usr/local/src/grb/HAINAUT/ADRESS_POINT.dbf,/usr/local/src/grb/LIEGE/ADRESS_POINT.dbf,/usr/local/src/grb/LUXEMBOURG/ADRESS_POINT.dbf,/usr/local/src/grb/BRABANT/ADRESS_POINT.dbf
+fi 
+
+if [ ${URBIS} -eq 1 ]; then
+    # Do wicked stuff here soon
+fi
 
 if [ $? -eq 0 ]
 then
