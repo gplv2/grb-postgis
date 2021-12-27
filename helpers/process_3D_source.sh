@@ -21,7 +21,7 @@ cd /usr/local/src/grb
 #echo "15715818" > OGRIDFILE
 if [ ! -f ${OGRIDFILE} ]; then
     echo "Reset counter $file"
-    echo "0" > ${OGRIDFILE}
+    echo "${OSM_ID_3D_START}" > ${OGRIDFILE}
 fi
 
 # If you are low on diskspace, you can use fuse to mount the zips as device in user space

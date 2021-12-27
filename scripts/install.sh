@@ -684,7 +684,7 @@ alias home='cd ${PROJECT_DIRECTORY}'
 EOF
 }
 
-function install_grb_sources {
+function install_git_sources {
     echo "${GREEN}Install GRB sources${RESET}"
     # https://github.com/gplv2/grb2pgsql.git
     # https://github.com/gplv2/grb2osm.git
@@ -703,7 +703,7 @@ function install_grb_sources {
     #su - ${DEPLOY_USER} -c "cd grb2pgsql && git submodule update --recursive --remote"
 }
 
-function make_grb_dirs {
+function make_work_dirs {
     echo "${GREEN}Creating dirs${RESET}"
     CREATEDIRS="/usr/local/src/grb /datadisk2/out"
 
@@ -1226,22 +1226,34 @@ echo "${GREEN}Done general stuff${RESET}"
 # Build all GRB things, setup db, parse source dat and load into DB
 if [ "${RES_ARRAY[1]}" = "db" ]; then
     echo "${GREEN}Running setup..${RESET}"
-    install_grb_sources
+    install_git_sources
     create_bash_alias
-    make_grb_dirs
-    prepare_source_data
-    prepare_picc_source_data
-    prepare_urbis_source_data
+    make_work_dirs
+    if [ ${GRB} -eq 1 ] ; then 
+	prepare_source_data
+    fi
+    if [ ${PICC} -eq 1 ] ; then 
+    	prepare_picc_source_data
+    fi
+    if [ ${URBIS} -eq 1 ] ; then 
+    	prepare_urbis_source_data
+    fi
     install_compile_packages
     install_carto_compiler
     install_tools
     load_osm_data
-    process_source_data
-    process_picc_source
+    if [ ${GRB} -eq 1 ] ; then 
+    	process_source_data
+    fi
+    if [ ${PICC} -eq 1 ] ; then 
+    	process_picc_source
+    fi
     process_merges
     process_import
     process_addressing
-    process_3d_source_data
+    if [ ${GRB} -eq 1 ] ; then 
+    	process_3d_source_data
+    fi
 #    move_indexes_tablespace  # disable to see how we can optimize this in the future, gives some SQL errors now
 
     if [ $TILESERVER == 'yes' ] ; then

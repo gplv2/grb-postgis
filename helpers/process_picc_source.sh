@@ -25,7 +25,7 @@ echo "${GREEN}Processing PICC data${RESET}"
 # If the file already exists, we need to contue counting from theer
 if [ ! -f ${OGRIDFILE} ]; then
     echo "Reset counter $file"
-    echo "0" > ${OGRIDFILE}
+    echo "${OSM_ID_START}" > ${OGRIDFILE}
 fi
 
 for file in NAMUR/CONSTR_BATIEMPRISE.shp LIEGE/CONSTR_BATIEMPRISE.shp HAINAUT/CONSTR_BATIEMPRISE.shp LUXEMBOURG/CONSTR_BATIEMPRISE.shp BRABANT/CONSTR_BATIEMPRISE.shp

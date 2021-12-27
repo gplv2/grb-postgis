@@ -10,8 +10,6 @@ RED=`tput setaf 1`
 GREEN=`tput setaf 2`
 RESET=`tput sgr0`
 
-OGRIDFILE=ogr2osm.id
-
 cd /usr/local/src/grb
 
 echo ""

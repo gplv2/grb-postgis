@@ -10,19 +10,9 @@ RED=`tput setaf 1`
 GREEN=`tput setaf 2`
 RESET=`tput sgr0`
 
-OGRIDFILE=ogr2osm.id
-
 cd /usr/local/src/grb
 
 # This script has been converted from the beta development site
-
-# We need to keep track of the OGRIDFILE id as it allows us to incrementally process files instead of making a huge one while still keeping osm id unique across files
-# default value is zero but the file does need to exists if you use the option
-#echo "15715818" > OGRIDFILE
-if [ ! -f ${OGRIDFILE} ]; then
-    echo "Reset counter $file"
-    echo "0" > ${OGRIDFILE}
-fi
 
 if [ -f "/datadisk2/out/all_merged.osm" ] && [ -f "/datadisk2/out/all_picc_merged.osm" ]; then
     echo "${GREEM}OSMOSIS GENERAL MERGE PICC/GRB${RESET}"
