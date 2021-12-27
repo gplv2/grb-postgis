@@ -42,8 +42,8 @@ DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
 DEBIAN_FRONTEND=noninteractive
 
 # selective processing 
-PICC=1
-GRB=1
+PICC=0
+GRB=0
 URBIS=1
 
 # for incremental updates, use this ID so it doesn't class with the existing data
