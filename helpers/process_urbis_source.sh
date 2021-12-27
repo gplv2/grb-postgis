@@ -38,16 +38,16 @@ fi
 
 echo "${GREEN}Loading up URBIS database${RESET}"
 
-echo 'CREATE DATABASE "urbis" WITH OWNER "grb-data" ENCODING="UTF-8"' | psql -U ${DBUSER} -h 127.0.0.1
-echo 'CREATE EXTENSION postgis' | psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1
+echo 'CREATE DATABASE "urbis" WITH OWNER "grb-data" ENCODING="UTF-8"' | psql -U postgres -h 127.0.0.1
+echo 'CREATE EXTENSION postgis' | psql -U postgres -h 127.0.0.1 -d urbis
 echo 'ALTER ROLE "grb-data" IN DATABASE urbis SET search_path = "URBIS_DIST_M7",public;' | psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1
 
-psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/UrbAdm_Schema.sql
-psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/UrbAdm_Data.sql
+psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/postgresql/UrbAdm_Schema.sql
+psql -U ${DBUSER} -d ${DBURBIS} -h 127.0.0.1 -f URBISPG/postgresql/UrbAdm_Data.sql
 
 echo "${GREEN}Processing URBIS shape files${RESET}"
 
-for file in URBIS/UrbAdm_BUILDING.shp
+for file in URBIS/shp/UrbAdm_BUILDING.shp
 
 do
  echo "Processing $file"
@@ -70,18 +70,16 @@ do
 
  echo "${GREEN}OGR2OGR${RESET}"
  echo "======="
- echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_${dirname}_parsed" ${dirname}/${filename}.shp -overwrite
+ echo /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
- /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_${dirname}_parsed" ${dirname}/${filename}.shp -overwrite
+ /usr/local/bin/ogr2ogr -s_srs "EPSG:31370" -t_srs "EPSG:4326" "${filename}_parsed" ${dirname}/${filename}.shp -overwrite
 
  echo ""
  echo "${GREEN}OGR2OSM${RESET}"
  echo "======="
- rm -f "${filename}_${dirname}.osm"
- echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_${dirname}_parsed/${filename}.shp"
- /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_${dirname}_parsed/${filename}.shp"
- echo "${GREEN}Rename ${filename}.osm to province version ${filename}_${dirname}.osm ${RESET}"
- mv ${filename}.osm ${filename}_${dirname}.osm
+ rm -f "${filename}.osm"
+ echo /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
+ /usr/local/bin/ogr2osm/ogr2osm.py --idfile=${OGRIDFILE} --positive-id --saveid=${OGRIDFILE} "${filename}_parsed/${filename}.shp"
  echo ""
 
 # using sed to modify the data before import, it's a lot faster than queries but you need to be careful, those replacements have been carefully selected and tested in the beta site
@@ -91,9 +89,9 @@ do
     then
     echo "${GREEN}running Urbis sed${RESET}"
     # mapping the entities to the OSM equivalent
-    sed -e 's/CATEGORY/building/g;s/ID/source:geometry:oidn/g;s/;s/tag k=\"END_LIFE\"\sv=\"(\"\"|[A-Z])\w+\"/tag k="source:geometry:entity" v="Urbis"/g' -i "${filename}_${dirname}.osm"
+    sed -e 's/CATEGORY/building/g;s/ID/source:geometry:oidn/g;s/tag k=\"BEGIN_LIFE\" v=\".*\"/tag k="source:geometry:entity" v="Urbis"/g;' -i "${filename}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
-    sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}_${dirname}.osm"
+    sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
  fi
 
 done
@@ -109,15 +107,14 @@ fi
 echo "${GREEM}OSMOSIS MERGE${RESET}"
 echo "============="
 
-mv UrbAdm_BUILDING_URBIS.osm /datadisk2/out/all_urbis_merged.osm
+mv UrbAdm_BUILDING.osm /datadisk2/out/all_urbis_merged.osm
 
 if [ $? -eq 0 ]
 then
     echo "${GREEN}Successfully moved URBIS sources (no need to merge) ${RESET}"
     #echo "Cleaning up diskspace - removing zip files"
     #cd /usr/local/src/grb && rm -f *.zip
-    echo "${GREEN}Cleaning up diskspace - removing parsed files${RESET}"
-    #rm -f URBIS.osm (not sure about the name here) FIXME
+    #echo "${GREEN}Cleaning up diskspace - removing parsed files${RESET}"
 else
   echo "${RED}Could not move sources file${RESET}" >&2
   exit 1
