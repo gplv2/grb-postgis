@@ -459,6 +459,13 @@ function process_picc_source {
     su - ${DEPLOY_USER} -c "/tmp/process_picc_source.sh"
 }
 
+function process_urbis_source {
+    echo "${GREEN}Process URBIS source data${RESET}"
+    # call external script
+    chmod +x /tmp/process_urbis_source.sh
+    su - ${DEPLOY_USER} -c "/tmp/process_urbis_source.sh"
+}
+
 function process_merges {
     echo "${GREEN}Merging source data ( GRB / PICC )${RESET}"
     # call external script
@@ -651,6 +658,8 @@ function prepare_urbis_source_data {
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_SHP.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm3D_SHP.zip"
+    # get the postgresql version too, much easier to pull addresses from this
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_PostGreSQL.zip"
 
     echo "${GREEN}Done${RESET}"
 
@@ -663,12 +672,16 @@ function prepare_urbis_source_data {
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
 
+	# postgreql version
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_PostGreSQL.zip URBISPG"
+
         echo "${GREEN}Done mounting urbis/zip sources${RESET}"
     else
         echo "${GREEN}extracting GRB data...${RESET}"
         # unpacking all provinces data
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
 
         echo "${GREEN}Done extracting and preparing URBIS sources${RESET}"
     fi
@@ -1247,6 +1260,9 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
     if [ ${PICC} -eq 1 ] ; then 
     	process_picc_source
+    fi
+    if [ ${URBIS} -eq 1 ] ; then 
+    	process_urbis_source
     fi
     process_merges
     process_import
