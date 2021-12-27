@@ -32,6 +32,7 @@ fi
 
 if [ ${URBIS} -eq 1 ]; then
     # Do wicked stuff here soon
+    php grb2osm/grb2osm.php -u
 fi
 
 if [ $? -eq 0 ]

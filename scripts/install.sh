@@ -1270,7 +1270,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     fi
     process_merges
     process_import
-    if [ ${GRB} -eq 1 ] || [ ${PICC} -eq 1 ]; then
+    if [ ${GRB} -eq 1 ] || [ ${PICC} -eq 1 ] || [ ${URBIS} -eq 1 ] ; then
     	process_addressing
     fi
     if [ ${GRB} -eq 1 ] ; then 
