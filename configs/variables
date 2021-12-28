@@ -1,29 +1,37 @@
 #!/bin/bash -e
 #ex: echo "${RED}red text ${GREEN}green text${RESET}"
 
+# parameters to tune programs, processes and machine
 # count cores
 CORES=$(nproc --all || getconf _NPROCESSORS_ONLN)
+# Processing threads for programs based on CPU count
 THREADS=$((${CORES}-1))
 DOUBLETHREADS=$((${CORES}*2))
 
+# memory sizing for postgres
 FREEMEM=$(free -m|awk '/^Mem:/{print $2}')
 CACHE=$(($(free -m|awk '/^Mem:/{print $2}')/3))
 PGEFFECTIVE=$(($(free -m|awk '/^Mem:/{print $2}')/2))
 
+# Versions proven to work and stable
 # GDAL_VERSION=2.2.4 (older)
 GDAL_VERSION=2.4.2
 PROJ_VERSION=6.1.1
 
+# optional flag that instead of building database builds a tileserver
 TILESERVER=no
 
+# default, no other option as this terraform only supports google cloud
 CLOUD=google
 
+# some defaults
 PROJECT_NAME=grbapi
 PROJECT_DIRECTORY=/var/www/${PROJECT_NAME}
 DEPLOY_USER=glenn
 PGPASS=/home/${DEPLOY_USER}/.pgpass
 PGRC=/home/${DEPLOY_USER}/.psqlrc
 
+# 2 working databases , one for grb data other for osm
 DB=grb_api
 USER=grb-data
 
@@ -42,16 +50,18 @@ DB_CREDENTIALS=/home/${DEPLOY_USER}/dbconf.ini
 DEBIAN_FRONTEND=noninteractive
 
 # selective processing 
-PICC=0
-GRB=0
+PICC=1
+GRB=1
 URBIS=1
 
 # for incremental updates, use this ID so it doesn't class with the existing data
 # All new data will start from there, making it possible to do partial processing
 # for example : only URBIS 
 # for full processing this should be set at zero
-OSM_ID_START=78408330
-OSM_ID_3D_START=78408330
+#OSM_ID_START=78408330
+#OSM_ID_3D_START=78408330
+OSM_ID_START=0
+OSM_ID_3D_START=0
 
 #GRB_RELEASE_DATE=20181204
 #GRB_RELEASE_DATE=20190815
