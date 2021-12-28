@@ -72,7 +72,7 @@ do
     then
     echo "${GREEN}running Picc sed${RESET}"
     # mapping the entities to the OSM equivalent
-    sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:oidn/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/tag k=\"CODE_WALTO\"\sv=\"([A-Z])\w+\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}_${dirname}.osm"
+    sed -e 's/NATUR_CODE/building/g;s/OBJECTID/source:geometry:oidn/g;s/DATE_MODIF/source:geometry:date/g;s/BAT/house/g;s/ANE/yes/g;s/BUI/yes/g;s/tag k=\"CODE_WALTO\"\sv=\".*\"/tag k="source:geometry:entity" v="Picc"/g' -i "${filename}_${dirname}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
     sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}_${dirname}.osm"
  fi
