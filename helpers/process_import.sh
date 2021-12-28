@@ -100,6 +100,7 @@ fi
 # change tags in DB
 cat > /tmp/update.tags.sql << EOF
 DELETE FROM planet_osm_polygon WHERE building IN ('garage3','pijler','rooster','zichtbare onderkeldering','cultuur-historisch monument','cabine','garage4','staketsel','gebouw afgezoomd met virtuele gevels','tunnelmond');
+DELETE FROM planet_osm_polygon WHERE highway='steps';
 UPDATE planet_osm_polygon SET fixme='verdieping, correct the building tag, add building:level and building:min_level before upload in JOSM!', building='yes' where building='verdieping';
 UPDATE planet_osm_polygon SET building='yes', man_made='water_tower' WHERE building='watertoren';
 UPDATE planet_osm_polygon SET man_made='tower', "tower:type"='cooling' , building='yes' WHERE building='koeltoren';
@@ -134,6 +135,8 @@ UPDATE planet_osm_polygon SET building='government' WHERE building='HDV';
 UPDATE planet_osm_polygon SET building='service' WHERE building='SDE';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='CEE';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='STS';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 1';
+UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 2';
 UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc'
 EOF
 
