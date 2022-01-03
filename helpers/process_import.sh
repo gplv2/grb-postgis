@@ -139,6 +139,7 @@ UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 1';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 2';
 UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc';
 UPDATE planet_osm_polygon SET way=ST_centroid(way) WHERE man_made='mast';
+UPDATE planet_osm_polygon SET osm_id=abs(osm_id) WHERE osm_id<0;
 EOF
 
 # These are primarily if you hook up a bbox client script to it, not really interesting when all you want to do is export the built database to a file
