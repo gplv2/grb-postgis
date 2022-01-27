@@ -54,7 +54,7 @@ PICC=1
 GRB=1
 URBIS=1
 
-# for incremental updates, use this ID so it doesn't class with the existing data
+# for incremental updates, use this ID so it doesn't clash with the existing data
 # All new data will start from there, making it possible to do partial processing
 # for example : only URBIS 
 # for full processing this should be set at zero
