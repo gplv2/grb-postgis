@@ -13,3 +13,4 @@ UPDATE planet_osm_polygon SET "addr:street:nl"='Dokter Élie Lambottestraat' WHE
 UPDATE planet_osm_polygon SET "addr:street"='Rue Ducale - Hertogstraat' , "addr:street:nl"='Hertogstraat' WHERE "addr:street" = 'Rue Ducale - Hertogsstraat' AND "source:geometry:entity"='Urbis';
 UPDATE planet_osm_polygon SET "addr:street"='Val des Épinettes - Doorndaal' , "addr:street:fr"='Val des Épinettes' WHERE "addr:street" = 'Val des Epinettes - Doorndaal' AND "source:geometry:entity"='Urbis';
 UPDATE planet_osm_polygon SET "addr:street"='Rue des Éburons - Eburonenstraat', "addr:street:fr"='Rue des Éburons' WHERE "addr:street" = 'Rue des Eburons - Eburonenstraat' AND "source:geometry:entity"='Urbis';
+UPDATE planet_osm_polygon SET "addr:street"='Rue de l''Écuelle - Napstraat', "addr:street:fr"='Rue de l''Écuelle' WHERE "addr:street" = 'Rue de l''Ecuelle - Napstraat' AND "source:geometry:entity"='Urbis';
