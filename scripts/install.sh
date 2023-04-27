@@ -522,21 +522,22 @@ function prepare_source_data {
     # downloading GRB data from private CDN or direct source
 
     echo "${GREEN}downloading GRB extracts (mirror)${RESET}"
+    FILESTORE=datafiles.grbosm.site
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/GRB_${GRB_RELEASE_DATE}_10000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/GRB_${GRB_RELEASE_DATE}_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/GRB_${GRB_RELEASE_DATE}_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/GRB_${GRB_RELEASE_DATE}_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/GRB_${GRB_RELEASE_DATE}_70000B500_Shapefile.zip"
 
     echo "${GREEN}downloading GRB 3D extracts (mirror)${RESET}"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_04000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_30000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_20001B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_40000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_70000B500_Shapefile.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/3D_GRB_10000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_04000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_30000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_20001B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_40000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_70000B500_Shapefile.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/3D_GRB_10000B500_Shapefile.zip"
 
     echo "${GREEN}Done${RESET}"
 
@@ -612,11 +613,11 @@ function prepare_picc_source_data {
 
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_HAINAUT.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip"
 
     echo "${GREEN}Done${RESET}"
 
@@ -656,10 +657,10 @@ function prepare_urbis_source_data {
 
     # wget seems to exhibit a bug in combination with running from terraform, quiet fixes that
     # this is using my own mirror of the files as the download process with AGIV doesn't really work with automated downloads
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_SHP.zip"
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm3D_SHP.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/UrbAdm_SHP.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/UrbAdm3D_SHP.zip"
     # get the postgresql version too, much easier to pull addresses from this
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://bitless.be/grb/UrbAdm_PostGreSQL.zip"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/UrbAdm_PostGreSQL.zip"
 
     echo "${GREEN}Done${RESET}"
 
