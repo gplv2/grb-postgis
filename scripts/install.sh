@@ -74,6 +74,9 @@ function install_shapefiles {
 }
 
 function install_tools {
+    echo "${GREEN}Fixing git protocol for older repos still using unauthenticated urls${RESET}"
+    git config --global url."https://".insteadOf git://
+
     echo "${GREEN}Installing tools${RESET}"
     DEBIAN_FRONTEND=noninteractive apt-get install -qq -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" -o Dpkg::Use-Pty=0 protobuf-compiler libprotobuf-dev liblz4-dev libboost-tools-dev libboost-thread1.65-dev magics++
 
