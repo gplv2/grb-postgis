@@ -91,7 +91,7 @@ function install_tools {
 
     echo "Building osm2pgsql"
     #cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql && git checkout 7865cd71353c064e7752def0d1835b5f63229379
-    cd /usr/local/src/ && git clone --recursive git://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql
+    cd /usr/local/src/ && git clone --recursive https://github.com/openstreetmap/osm2pgsql.git && cd /usr/local/src/osm2pgsql
 
     # temp fix for bug
     sed -i "s/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX)/(osm2pgsql VERSION 1.5.1 LANGUAGES CXX C)/" /usr/local/src/osm2pgsql/CMakeLists.txt
@@ -115,7 +115,7 @@ function install_tools {
     # ogr2osm from Peter Norman (use a fork because there is a performance issue)
     #cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
     # ogr2osm from Peter Norman
-    cd /usr/local/bin && git clone --recursive git://github.com/pnorman/ogr2osm.git
+    cd /usr/local/bin && git clone --recursive https://github.com/pnorman/ogr2osm.git
     # need to add this directory to PATH
     export PATH=$PATH:/usr/local/bin/ogr2osm
     # carto CSS for building our custom OSM DB
@@ -174,7 +174,7 @@ function install_modtile {
     #mkdir /usr/local/src/grb
     #chown -R ${DEPLOY_USER}:${DEPLOY_USER} /usr/local/src/grb/mapnik
 
-    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm git://github.com/SomeoneElseOSM/mod_tile.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j ${CORES}"
+    su - ${DEPLOY_USER} -c "cd /usr/local/src/grb/ && git clone -b switch2osm https://github.com/pnorman/ogr2osm.git && cd /usr/local/src/grb/mod_tile && ./autogen.sh && ./configure && make -j ${CORES}"
 
     if [ $? -eq 0 ]
         then
