@@ -670,12 +670,12 @@ function prepare_urbis_source_data {
         mkdir URBIS URBIS3D URBISPG
         chown ${DEPLOY_USER}:${DEPLOY_USER} URBIS URBIS3D URBISPG
 
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
 
-        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
-        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
 
 	# postgreql version
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_PostGreSQL.zip URBISPG"
