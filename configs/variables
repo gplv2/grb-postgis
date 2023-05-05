@@ -51,8 +51,8 @@ DEBIAN_FRONTEND=noninteractive
 
 # selective processing 
 PICC=1
-GRB=1
-URBIS=1
+GRB=0
+URBIS=0
 
 # for incremental updates, use this ID so it doesn't clash with the existing data
 # All new data will start from there, making it possible to do partial processing
@@ -60,7 +60,7 @@ URBIS=1
 # for full processing this should be set at zero
 #OSM_ID_START=78408330
 #OSM_ID_3D_START=78408330
-OSM_ID_START=0
+OSM_ID_START=76000000
 OSM_ID_3D_START=0
 
 #GRB_RELEASE_DATE=20181204

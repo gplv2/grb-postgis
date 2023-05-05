@@ -137,6 +137,7 @@ UPDATE planet_osm_polygon SET building='yes' WHERE building='CEE';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='STS';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 1';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 2';
+-- temp disable to see why DATE_MODIF is not processed correctly
 -- UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc';
 UPDATE planet_osm_polygon SET way=ST_centroid(way) WHERE man_made='mast';
 UPDATE planet_osm_polygon SET osm_id=abs(osm_id) WHERE osm_id<0;
