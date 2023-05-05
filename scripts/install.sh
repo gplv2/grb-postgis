@@ -357,7 +357,7 @@ function load_osm_data {
         sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/be-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
     else
         sudo su - $DEPLOY_USER -c "/usr/local/bin/osm2pgsql --slim --create -m --cache ${CACHE} --drop -G --number-processes ${THREADS} --hstore --tag-transform-script /usr/local/src/openstreetmap-carto/openstreetmap-carto.lua --style /usr/local/src/openstreetmap-carto/openstreetmap-carto.style -d ${DATA_DB} -U ${USER} /usr/local/src/grb/belgium-latest.osm.pbf -H 127.0.0.1 --tablespace-main-data dbspace --tablespace-main-index indexspace --tablespace-slim-data dbspace --tablespace-slim-index indexspace"
-    fi  
+    fi
     echo "${GREEN}Done - Loading OSM data${RESET}"
 }
 
@@ -423,6 +423,18 @@ function alter_geometry {
     su - postgres -c "cat /tmp/alter_geometry_api.sql | psql -d ${DATA_DB}"
     echo "${GREEN}${DB} data ${RESET}"
     su - postgres -c "cat /tmp/alter_geometry_osm.sql | psql -d ${DB}"
+    echo "${GREEN}DONE ${RESET}"
+}
+
+function fix_streetnames {
+    echo "${GREEN}Fix some specific wrong street names found in source DB before export ${RESET}"
+    su - postgres -c "cat /tmp/fix_streetnames.sql | psql -d ${DB}"
+    echo "${GREEN}DONE ${RESET}"
+}
+
+function make_post_fixes {
+    echo "${GREEN}Make post import data fixes / improvements${RESET}"
+    su - postgres -c "cat /tmp/post_import_fixes.sql | psql -d ${DB}"
     echo "${GREEN}DONE ${RESET}"
 }
 
@@ -627,7 +639,7 @@ function prepare_picc_source_data {
     if [ "${SAVESPACE}" = "yes" ] || [ -z "${SAVESPACE}" ] ; then
         # If you are low on diskspace, you can use fuse to mount the zips as device in user space
         cd /usr/local/src/grb
-        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG 
+        mkdir NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG
         chown ${DEPLOY_USER}:${DEPLOY_USER} NAMUR BRABANT HAINAUT LIEGE LUXEMBOURG
 
         su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip BRABANT"
@@ -1253,26 +1265,26 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_git_sources
     create_bash_alias
     make_work_dirs
-    if [ ${GRB} -eq 1 ] ; then 
+    if [ ${GRB} -eq 1 ] ; then
 	prepare_source_data
     fi
-    if [ ${PICC} -eq 1 ] ; then 
+    if [ ${PICC} -eq 1 ] ; then
     	prepare_picc_source_data
     fi
-    if [ ${URBIS} -eq 1 ] ; then 
+    if [ ${URBIS} -eq 1 ] ; then
     	prepare_urbis_source_data
     fi
     install_compile_packages
     install_carto_compiler
     install_tools
     load_osm_data
-    if [ ${GRB} -eq 1 ] ; then 
+    if [ ${GRB} -eq 1 ] ; then
     	process_source_data
     fi
-    if [ ${PICC} -eq 1 ] ; then 
+    if [ ${PICC} -eq 1 ] ; then
     	process_picc_source
     fi
-    if [ ${URBIS} -eq 1 ] ; then 
+    if [ ${URBIS} -eq 1 ] ; then
     	process_urbis_source
     fi
     process_merges
@@ -1280,7 +1292,7 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     if [ ${GRB} -eq 1 ] || [ ${PICC} -eq 1 ] || [ ${URBIS} -eq 1 ] ; then
     	process_addressing
     fi
-    if [ ${GRB} -eq 1 ] ; then 
+    if [ ${GRB} -eq 1 ] ; then
     	process_3d_source_data
     fi
 #    move_indexes_tablespace  # disable to see how we can optimize this in the future, gives some SQL errors now
@@ -1303,6 +1315,8 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
         #transform_srid  Not needed anymore for tileserver
     else
         alter_geometry  #Not needed anymore for tileserver
+        fix_streetnames
+        make_post_fixes
     fi
     echo "${GREEN}Done database section${RESET}"
 fi
