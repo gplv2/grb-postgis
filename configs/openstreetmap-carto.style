@@ -65,10 +65,11 @@ node,way   shop         text         polygon
 node,way   sport        text         polygon
 node,way   surface      text         linear
 way   source:geometry:date	text	linear
-way   source:geometry:oidn	text	linear
-way   source:geometry:uidn	text	linear
+way   source:geometry:oidn	int4	linear
+way   source:geometry:uidn	int4	linear
 way   source:geometry:entity	text	linear
 way   source:geometry:ref	text	linear
+way   source:geometry:version	int4	linear
 way   source:geometry	text	linear
 node,way   toll         text         linear
 node,way   tourism      text         polygon

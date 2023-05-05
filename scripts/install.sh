@@ -673,15 +673,18 @@ function prepare_urbis_source_data {
         mkdir URBIS URBIS3D URBISPG
         chown ${DEPLOY_USER}:${DEPLOY_USER} URBIS URBIS3D URBISPG
 
-        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
-        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
-        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
+        # [11178.564728] fuse-zip[14858]: segfault at 5625309cede0 ip 00007ff1e9eb7c05 sp 00007fff8a1dec28 error 6 in libc-2.27.so[7ff1e9d29000+1e7000]
+        #[11178.564735] Code: 1b 26 00 0f 87 f0 00 00 00 c5 fe 6f 01 c5 fe 6f 49 e0 c5 fe 6f 51 c0 c5 fe 6f 59 a0 48 81 e9 80 00 00 00 48 81 ea 80 00 00 00 <c4> c1 7d 7f 01 c4 c1 7d 7f 49 e0 c4 c1 7d 7f 51 c0 c4 c1 7d 7f 59
+        #  We seem to have a crash in fuse for this zip so unpacking for real instead
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_SHP.zip -d URBIS"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm3D_SHP.zip -d URBIS3D"
+        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && unzip UrbAdm_PostGreSQL.zip -d URBISPG"
 
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_SHP.zip URBIS"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm3D_SHP.zip URBIS3D"
 
 	# postgreql version
-        su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_PostGreSQL.zip URBISPG"
+        #su - ${DEPLOY_USER} -c "cd /usr/local/src/grb ;fuse-zip -o ro /usr/local/src/grb/UrbAdm_PostGreSQL.zip URBISPG"
 
         echo "${GREEN}Done mounting urbis/zip sources${RESET}"
     else
