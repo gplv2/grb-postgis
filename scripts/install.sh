@@ -616,6 +616,7 @@ function prepare_source_data {
 }
 
 function prepare_picc_source_data {
+    FILESTORE=datafiles.grbosm.site
     echo "${GREEN}Downloading PICC data${RESET}"
     # downloading PICC data from private CDN or direct source
 
@@ -633,6 +634,8 @@ function prepare_picc_source_data {
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_LIEGE.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_LUXEMBOURG.zip"
     su - ${DEPLOY_USER} -c "cd /usr/local/src/grb && wget --quiet https://${FILESTORE}/grb/PICC_vDIFF_SHAPE_31370_PROV_NAMUR.zip"
+    # datafiles.grbosm.site
+    # https://datafiles.grbosm.site/grb/PICC_vDIFF_SHAPE_31370_PROV_BRABANT_WALLON.zip
 
     echo "${GREEN}Done${RESET}"
 
@@ -663,6 +666,7 @@ function prepare_picc_source_data {
 }
 
 function prepare_urbis_source_data {
+    FILESTORE=datafiles.grbosm.site
     echo "${GREEN}Downloading URBIS data${RESET}"
     # downloading PICC data from private CDN or direct source
 
