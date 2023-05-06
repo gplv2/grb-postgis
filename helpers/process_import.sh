@@ -138,7 +138,7 @@ UPDATE planet_osm_polygon SET building='yes' WHERE building='STS';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 1';
 UPDATE planet_osm_polygon SET building='yes' WHERE building='Category 2';
 -- temp disable to see why DATE_MODIF is not processed correctly
--- UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc';
+UPDATE planet_osm_polygon SET "source:geometry:date" = concat_ws('-',substring("source:geometry:date",1,4), substring("source:geometry:date",5,2), substring("source:geometry:date",7,2)) WHERE "source:geometry:entity"='Picc';
 UPDATE planet_osm_polygon SET way=ST_centroid(way) WHERE man_made='mast';
 UPDATE planet_osm_polygon SET osm_id=abs(osm_id) WHERE osm_id<0;
 UPDATE planet_osm_polygon SET "addr:street" = upper(left("addr:street", 1)) || right("addr:street", -1) WHERE "addr:street" is not null AND "addr:street" <> upper(left("addr:street", 1)) || right("addr:street", -1) AND "addr:street" NOT IN ('von Asten-Straße','von-Dhaem-Strasse','von-Montigny-Straße','von-Orley-Straße','t Zand','be-MINE') AND position('''' IN "addr:street") <> 2;
