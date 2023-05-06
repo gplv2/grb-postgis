@@ -112,12 +112,11 @@ node,way    CAPAKEY                 text    delete
 node,way    END_LIFE                text    delete
 node,way    BEGIN_LIFE              text    delete
 # picc delete
-node,way    PRECIS_Z                 text    delete
-node,way    DATE_LEVE                 text    delete
-node,way    PRECIS_XY                 text    delete
-node,way    CODE_WALTO                text    delete
-node,way    NATUR_DESC                text    delete
-node,way    PRECIS_Z                 text    delete
+node,way    PRECIS_Z                text    delete
+node,way    DATE_LEVE               text    delete
+node,way    PRECIS_XY               text    delete
+node,way    CODE_WALTO              text    delete
+node,way    NATUR_DESC              text    delete
 # grb delete
 node,way    LBLVORM                 text    delete
 node,way    VERSDATUM               text    delete

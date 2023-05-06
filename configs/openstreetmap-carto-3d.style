@@ -111,6 +111,9 @@ node,way    LENGTE                  text    delete
 node,way    OPPERVL                 text    delete
 node,way    NISCODE                 text    delete
 node,way    GEMEENTE                text    delete
+node,way    PRECIS_Z                text    delete
+node,way    PRECIS_XY               text    delete
+node,way    CODE_WALTO               text    delete
 #node,way    PERCENTIEL             text    delete
 node,way    STRAATNMID              text    delete
 node,way    POSTCODE                text    delete
