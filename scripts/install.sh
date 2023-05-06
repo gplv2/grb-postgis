@@ -1281,9 +1281,9 @@ if [ "${RES_ARRAY[1]}" = "db" ]; then
     install_compile_packages
     install_carto_compiler
     install_tools
-    if [ $TILESERVER == 'yes' ] ; then
-        load_osm_data
-    fi
+    #if [ $TILESERVER == 'yes' ] ; then
+    load_osm_data
+    #fi
     if [ ${GRB} -eq 1 ] ; then
     	process_source_data
     fi
