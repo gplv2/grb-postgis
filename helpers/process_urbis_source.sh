@@ -89,6 +89,7 @@ do
     then
     echo "${GREEN}running Urbis sed${RESET}"
     # mapping the entities to the OSM equivalent
+    cp "${filename}.osm" "${filename}_keep_debug.osm"
     sed -e 's/CATEGORY/building/g;s/ID/source:geometry:oidn/g;s/tag k=\"BEGIN_LIFE\" v=\".*\"/tag k="source:geometry:entity" v="Urbis"/g;' -i "${filename}.osm"
     # this line is needed for the tools to work so we need to add it to the osm file using sed to replace
     sed -e 's/ visible="true"/ version="1" timestamp="1970-01-01T00:00:01Z" changeset="1" visible="true"/g' -i "${filename}.osm"
